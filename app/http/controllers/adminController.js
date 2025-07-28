@@ -1,5 +1,3 @@
-import mongoose from "mongoose";
-import Task from "../../models/task.js";
 import User from "../../models/user.js";
 import { validateUser } from "../../models/user.js";
 
