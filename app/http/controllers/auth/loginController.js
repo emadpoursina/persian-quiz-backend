@@ -2,22 +2,22 @@ import Controller from "../controller.js";
 import User from "../../../models/User.js";
 
 class loginController extends Controller {
-  async login(req, res, next) {
-    const { email, password } = req.body;
+  async login(req, res) {
+    const { phone, password } = req.body;
 
     // Validation
-    if (!email || !password) {
+    if (!phone || !password) {
       return res
         .status(400)
-        .json({ message: "Email and password are required." });
+        .json({ message: "Phone and password are required." });
     }
 
     try {
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ phone });
       if (!user)
         return res.status(401).json({ message: "Invalid credentials." });
 
-      const isMatch = user.comparePassword(password);
+      const isMatch = await user.comparePassword(password);
       if (!isMatch)
         return res.status(401).json({ message: "Invalid credentials." });
 
@@ -27,7 +27,7 @@ class loginController extends Controller {
       const userResponse = {
         _id: user._id,
         name: user.name,
-        email: user.email,
+        phone: user.phone,
         avatarUrl: user.avatarUrl,
         role: user.role,
         isActive: user.isActive,
