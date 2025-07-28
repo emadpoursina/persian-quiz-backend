@@ -10,7 +10,7 @@ const Schema = mongoose.Schema;
 export const UserJoiSchema = Joi.object({
   name: Joi.string().min(3).max(50).required().trim(),
   phone: Joi.string()
-    .pattern(/^09\d{8}$/)
+    .pattern(/^09\d{9}$/)
     .required()
     .messages({
       "string.pattern.base": "Enter a corroct phone number",
@@ -39,7 +39,7 @@ const UserSchema = new Schema(
       type: String,
       required: true,
       match: [
-        /^09\d{8}$/,
+        /^09\d{9}$/,
         "Phone number must start with 09 and be 10 digits long",
       ],
       unique: true, // Consider adding if phone numbers should be unique
