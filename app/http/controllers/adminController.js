@@ -1,5 +1,6 @@
-import User from "../../models/user.js";
-import { validateUser } from "../../models/user.js";
+import { omit } from "lodash";
+import User from "../../models/User.js";
+import { validateUser } from "../../models/User.js";
 
 const adminController = {
   // 9. Get all users
@@ -101,30 +102,29 @@ const adminController = {
   // 13. Create a user
   async createUser(req, res) {
     // Validate input
-    const { error } = validateUser({ ...req.body, joinDate: new Date() });
+    const { error } = validateUser({ ...req.body });
     if (error) return res.status(400).json({ error: error.details[0].message });
     try {
       // Check for existing email
-      const existing = await User.findOne({ email: req.body.email });
+      const existing = await User.findOne({ phone: req.body.phone });
       if (existing)
-        return res.status(409).json({ error: "Email already registered" });
+        return res
+          .status(409)
+          .json({ error: "Phone number already registered" });
       // Hash password
       req.body.password = await User.hashPassword(req.body.password);
       // Create user
       const user = new User({
         name: req.body.name,
-        email: req.body.email,
+        phone: req.body.phone,
         password: req.body.password,
         role: req.body.role || "user",
         avatar: req.body.avatar,
         isActive: req.body.isActive !== undefined ? req.body.isActive : true,
-        joinDate: new Date(),
       });
       await user.save();
       // Remove password from response
-      const userObj = user.toObject();
-      delete userObj.password;
-      res.status(201).json(userObj);
+      res.status(201).json(omit(user.toObject(), "password"));
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
