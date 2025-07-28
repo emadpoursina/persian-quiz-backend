@@ -1,33 +1,67 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { User, Lock, BookOpen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { User, Lock, BookOpen } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import Joi from "joi";
+import { useForm } from "react-hook-form";
+import { joiResolver } from "@hookform/resolvers/joi";
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  // const { logIn } = useAuth();
+  // Define validation schema with Joi
+  const joiSchema = Joi.object({
+    phoneNumber: Joi.string()
+      .pattern(/^09\d{9}$/)
+      .required()
+      .messages({
+        "string.pattern.base": "شماره موبایل نامعتبر است.",
+        "string.empty": "شماره موبایل را وارد کنید.",
+      }),
+    password: Joi.string().required().messages({
+      "string.empty": "رمز عبور را وارد کنید.",
+    }),
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: joiResolver(joiSchema),
+  });
 
-    if (!username.trim() || !password.trim()) {
-      alert("لطفاً نام کاربری و رمز عبور را وارد کنید");
-      return;
-    }
+  // const {
+  //   mutate: login,
+  //   isLoading,
+  //   error: loginError,
+  // } = useMutation({
+  //   mutationFn: async (data) => {
+  //     // Optionally, you can send the role to the backend in the future
+  //     const response = await apiClient.post("/auth/login", data);
+  //     const token = response.headers && response.headers["x-auth-token"];
+  //     if (response.ok && token) {
+  //       logIn(response.data);
+  //       return response.data;
+  //     }
+  //     if (response.status === 401) {
+  //       throw new Error("ایمیل یا رمز عبور اشتباه است");
+  //     }
+  //     throw new Error(
+  //       response.data?.message || response.problem || "ورود ناموفق بود"
+  //     );
+  //   },
+  //   onSuccess: () => {
+  //     window.location.href = "/";
+  //   },
+  // });
 
-    setIsLoading(true);
+  const onSubmit = (data) => {
+    console.log(data);
 
-    // Simulate login delay
-    setTimeout(() => {
-      // Accept any username and password
-      localStorage.setItem("adminLoggedIn", "true");
-      localStorage.setItem("adminUser", username);
-      navigate("/admin");
-    }, 1000);
+    // Optionally, you can add role to data: { ...data, role }
+    // login(data);
   };
 
   return (
@@ -49,21 +83,26 @@ export default function AdminLoginPage() {
         </CardHeader>
 
         <CardContent className="space-y-6 p-4 sm:p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <label className="text-gray-700 text-sm font-medium">
-                نام کاربری
+                شماره موبایل
               </label>
               <div className="relative">
                 <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  type="tell"
+                  id="phoneNumber"
+                  {...register("phoneNumber")}
                   className="pr-10 bg-gray-50 border-gray-300 text-gray-800 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500/20 text-base"
-                  placeholder="نام کاربری خود را وارد کنید"
+                  placeholder="شماره موبایل خود را وارد کنید."
                   required
                 />
+                {errors.phoneNumber && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.phoneNumber.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -75,36 +114,35 @@ export default function AdminLoginPage() {
                 <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="password"
+                  {...register("password")}
                   className="pr-10 bg-gray-50 border-gray-300 text-gray-800 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500/20 text-base"
                   placeholder="رمز عبور خود را وارد کنید"
                   required
                 />
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
             </div>
 
             <Button
               type="submit"
+              // disabled={isLoading}
               className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-medium py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg text-base"
-              disabled={isLoading}
             >
-              {isLoading ? (
+              {/* {isLoading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-2" />
                   در حال ورود...
                 </>
               ) : (
                 "ورود به پنل"
-              )}
+              )} */}
             </Button>
           </form>
-
-          <div className="text-center">
-            <p className="text-gray-500 text-xs">
-              برای تست: هر نام کاربری و رمز عبوری قابل قبول است
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
