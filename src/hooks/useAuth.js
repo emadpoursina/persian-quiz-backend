@@ -6,7 +6,7 @@ import { currentUserAtom } from "@/config/state";
 export default function useAuth() {
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
 
-  const logIn = (data) => {
+  const login = (data) => {
     authStorage.storeToken(data.token);
     localStorage.setItem("persian-quiz-user", JSON.stringify(data.user));
 
@@ -35,7 +35,7 @@ export default function useAuth() {
   };
 
   return {
-    logIn,
+    login,
     logOut,
     setCurrentUser,
     currentUser,
