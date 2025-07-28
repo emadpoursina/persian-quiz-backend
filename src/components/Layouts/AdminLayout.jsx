@@ -1,59 +1,9 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
 import CustomSidebar from "@/components/CustomSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function AdminLayout({ children }) {
-  const navigate = useNavigate();
-  const pathname = useLocation().pathname;
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    const checkAuth = () => {
-      const loggedIn = localStorage.getItem("adminLoggedIn");
-
-      if (!loggedIn && pathname !== "/admin/login") {
-        navigate("/admin/login");
-        return;
-      }
-
-      if (loggedIn && pathname === "/admin/login") {
-        navigate("/admin");
-        return;
-      }
-
-      setIsLoggedIn(!!loggedIn);
-      setIsLoading(false);
-    };
-
-    checkAuth();
-  }, [navigate, pathname]);
-
-  if (isLoading) {
-    return (
-      <div
-        className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center"
-        dir="rtl"
-      >
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">در حال بارگذاری...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If on login page, render without sidebar
-  if (pathname === "/admin/login") {
-    return <div dir="rtl">{children}</div>;
-  }
-
-  // If not logged in and not on login page, don't render anything (redirect will happen)
-  if (!isLoggedIn) {
-    return null;
-  }
 
   return (
     <SidebarProvider defaultOpen={false}>
