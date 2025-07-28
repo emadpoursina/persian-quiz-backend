@@ -45,16 +45,6 @@ class loginController extends Controller {
       res.status(500).json({ message: "Server error", error: err.message });
     }
   }
-
-  // Get current user info
-  getCurrentUser(req, res) {
-    if (!req.user) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    // You may want to fetch the user from DB for fresh info, but here we use req.user
-    const { id, email, role } = req.user;
-    res.json({ id, email, role });
-  }
 }
 
 export default new loginController();
