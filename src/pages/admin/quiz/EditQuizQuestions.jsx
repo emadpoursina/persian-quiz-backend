@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import TinyMCEEditor from "@/components/tinymce-editor";
+import AdminLayout from "@/components/Layouts/AdminLayout";
 
 export default function QuestionsPage() {
   const params = useParams();
@@ -391,263 +392,267 @@ function QuestionForm({ question, onSubmit, onCancel }) {
   };
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-      <h3 className="font-medium text-blue-800 mb-4">
-        {question ? "ویرایش سوال" : "افزودن سوال جدید"}
-      </h3>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            متن سوال *
-          </label>
-          <TinyMCEEditor
-            value={questionText}
-            onChange={setQuestionText}
-            placeholder="متن سوال را وارد کنید..."
-            className="bg-white"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            از ابزارهای ویرایشگر برای قالب‌بندی سوال استفاده کنید
-          </p>
-        </div>
+    <AdminLayout>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 className="font-medium text-blue-800 mb-4">
+          {question ? "ویرایش سوال" : "افزودن سوال جدید"}
+        </h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              متن سوال *
+            </label>
+            <TinyMCEEditor
+              value={questionText}
+              onChange={setQuestionText}
+              placeholder="متن سوال را وارد کنید..."
+              className="bg-white"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              از ابزارهای ویرایشگر برای قالب‌بندی سوال استفاده کنید
+            </p>
+          </div>
 
-        {/* Media Section */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            رسانه (اختیاری)
-          </label>
+          {/* Media Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              رسانه (اختیاری)
+            </label>
 
-          {media ? (
-            <div className="p-4 bg-white border border-gray-300 rounded-lg">
-              {media.type === "image" ? (
-                <div className="flex items-center gap-4">
-                  <img
-                    src={media.url || "/placeholder.svg"}
-                    alt={media.alt}
-                    className="w-20 h-20 object-cover rounded border"
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-800">
-                      تصویر انتخاب شده
-                    </p>
-                    <p className="text-xs text-gray-500">{media.alt}</p>
+            {media ? (
+              <div className="p-4 bg-white border border-gray-300 rounded-lg">
+                {media.type === "image" ? (
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={media.url || "/placeholder.svg"}
+                      alt={media.alt}
+                      className="w-20 h-20 object-cover rounded border"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800">
+                        تصویر انتخاب شده
+                      </p>
+                      <p className="text-xs text-gray-500">{media.alt}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={removeMedia}
+                      className="text-red-600 bg-transparent"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={removeMedia}
-                    className="text-red-600 bg-transparent"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 bg-gray-100 rounded border flex items-center justify-center">
-                    <Video className="w-8 h-8 text-gray-400" />
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 bg-gray-100 rounded border flex items-center justify-center">
+                      <Video className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800">
+                        ویدیو انتخاب شده
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {media.url}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={removeMedia}
+                      className="text-red-600 bg-transparent"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-800">
-                      ویدیو انتخاب شده
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {media.url}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={removeMedia}
-                    className="text-red-600 bg-transparent"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setShowImageInput(!showImageInput);
-                  setShowVideoInput(false);
-                }}
-                className="text-blue-600 hover:bg-blue-50"
-              >
-                <ImageIcon className="w-4 h-4 ml-2" />
-                افزودن تصویر
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setShowVideoInput(!showVideoInput);
-                  setShowImageInput(false);
-                }}
-                className="text-red-600 hover:bg-red-50"
-              >
-                <Video className="w-4 h-4 ml-2" />
-                افزودن ویدیو
-              </Button>
-            </div>
-          )}
-
-          {/* Image Input */}
-          {showImageInput && (
-            <div className="mt-3 p-4 bg-white border border-gray-300 rounded-lg space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  آپلود تصویر
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-              </div>
-              <div className="text-center text-gray-500 text-sm">یا</div>
-              <div className="space-y-2">
-                <Input
-                  type="url"
-                  placeholder="لینک تصویر را وارد کنید"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="bg-white"
-                />
-                <Input
-                  type="text"
-                  placeholder="توضیح تصویر (اختیاری)"
-                  value={imageAlt}
-                  onChange={(e) => setImageAlt(e.target.value)}
-                  className="bg-white"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleImageUrl}
-                    disabled={!imageUrl.trim()}
-                  >
-                    <Link className="w-4 h-4 ml-2" />
-                    افزودن لینک
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowImageInput(false)}
-                  >
-                    انصراف
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Video Input */}
-          {showVideoInput && (
-            <div className="mt-3 p-4 bg-white border border-gray-300 rounded-lg space-y-3">
-              <div className="space-y-2">
-                <Input
-                  type="url"
-                  placeholder="لینک ویدیو (YouTube, Vimeo, ...)"
-                  value={videoUrl}
-                  onChange={(e) => setVideoUrl(e.target.value)}
-                  className="bg-white"
-                />
-                <p className="text-xs text-gray-500">
-                  مثال: https://youtube.com/watch?v=VIDEO_ID یا
-                  https://youtu.be/VIDEO_ID
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleVideoUrl}
-                    disabled={!videoUrl.trim()}
-                  >
-                    <Video className="w-4 h-4 ml-2" />
-                    افزودن ویدیو
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowVideoInput(false)}
-                  >
-                    انصراف
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            گزینه‌ها *
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {options.map((option, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={option}
-                    onChange={(e) => {
-                      const newOptions = [...options];
-                      newOptions[index] = e.target.value;
-                      setOptions(newOptions);
-                    }}
-                    placeholder={`گزینه ${index + 1}`}
-                    className="bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
-                    required
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={index === correct ? "default" : "outline"}
-                    onClick={() => setCorrect(index)}
-                    className={
-                      index === correct ? "bg-green-500 hover:bg-green-600" : ""
-                    }
-                  >
-                    {index === correct ? "✓" : index + 1}
-                  </Button>
-                </div>
-                {index === correct && (
-                  <p className="text-xs text-green-600">
-                    این گزینه پاسخ صحیح است
-                  </p>
                 )}
               </div>
-            ))}
-          </div>
-        </div>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setShowImageInput(!showImageInput);
+                    setShowVideoInput(false);
+                  }}
+                  className="text-blue-600 hover:bg-blue-50"
+                >
+                  <ImageIcon className="w-4 h-4 ml-2" />
+                  افزودن تصویر
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setShowVideoInput(!showVideoInput);
+                    setShowImageInput(false);
+                  }}
+                  className="text-red-600 hover:bg-red-50"
+                >
+                  <Video className="w-4 h-4 ml-2" />
+                  افزودن ویدیو
+                </Button>
+              </div>
+            )}
 
-        <div className="flex gap-3 pt-4">
-          <Button
-            type="submit"
-            className="bg-green-500 hover:bg-green-600"
-            disabled={
-              !questionText.trim() || !options.every((opt) => opt.trim())
-            }
-          >
-            <Save className="w-4 h-4 ml-2" />
-            {question ? "ذخیره تغییرات" : "افزودن سوال"}
-          </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
-            <X className="w-4 h-4 ml-2" />
-            انصراف
-          </Button>
-        </div>
-      </form>
-    </div>
+            {/* Image Input */}
+            {showImageInput && (
+              <div className="mt-3 p-4 bg-white border border-gray-300 rounded-lg space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    آپلود تصویر
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                </div>
+                <div className="text-center text-gray-500 text-sm">یا</div>
+                <div className="space-y-2">
+                  <Input
+                    type="url"
+                    placeholder="لینک تصویر را وارد کنید"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    className="bg-white"
+                  />
+                  <Input
+                    type="text"
+                    placeholder="توضیح تصویر (اختیاری)"
+                    value={imageAlt}
+                    onChange={(e) => setImageAlt(e.target.value)}
+                    className="bg-white"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleImageUrl}
+                      disabled={!imageUrl.trim()}
+                    >
+                      <Link className="w-4 h-4 ml-2" />
+                      افزودن لینک
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowImageInput(false)}
+                    >
+                      انصراف
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Video Input */}
+            {showVideoInput && (
+              <div className="mt-3 p-4 bg-white border border-gray-300 rounded-lg space-y-3">
+                <div className="space-y-2">
+                  <Input
+                    type="url"
+                    placeholder="لینک ویدیو (YouTube, Vimeo, ...)"
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    className="bg-white"
+                  />
+                  <p className="text-xs text-gray-500">
+                    مثال: https://youtube.com/watch?v=VIDEO_ID یا
+                    https://youtu.be/VIDEO_ID
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleVideoUrl}
+                      disabled={!videoUrl.trim()}
+                    >
+                      <Video className="w-4 h-4 ml-2" />
+                      افزودن ویدیو
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowVideoInput(false)}
+                    >
+                      انصراف
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              گزینه‌ها *
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {options.map((option, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={option}
+                      onChange={(e) => {
+                        const newOptions = [...options];
+                        newOptions[index] = e.target.value;
+                        setOptions(newOptions);
+                      }}
+                      placeholder={`گزینه ${index + 1}`}
+                      className="bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
+                      required
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={index === correct ? "default" : "outline"}
+                      onClick={() => setCorrect(index)}
+                      className={
+                        index === correct
+                          ? "bg-green-500 hover:bg-green-600"
+                          : ""
+                      }
+                    >
+                      {index === correct ? "✓" : index + 1}
+                    </Button>
+                  </div>
+                  {index === correct && (
+                    <p className="text-xs text-green-600">
+                      این گزینه پاسخ صحیح است
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="submit"
+              className="bg-green-500 hover:bg-green-600"
+              disabled={
+                !questionText.trim() || !options.every((opt) => opt.trim())
+              }
+            >
+              <Save className="w-4 h-4 ml-2" />
+              {question ? "ذخیره تغییرات" : "افزودن سوال"}
+            </Button>
+            <Button type="button" variant="outline" onClick={onCancel}>
+              <X className="w-4 h-4 ml-2" />
+              انصراف
+            </Button>
+          </div>
+        </form>
+      </div>
+    </AdminLayout>
   );
 }
