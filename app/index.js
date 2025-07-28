@@ -6,14 +6,6 @@ import cors from "cors";
 import router from "./routes/web/index.js";
 import bodyParser from "body-parser";
 import errorHandler from "./http/middleware/errorHandler.js";
-import { CronJob } from "cron";
-import Setting from "./models/setting.js";
-import settingController from "./http/controllers/settingController.js";
-import { getCronPattern, sendEmailWithResend } from "./helpers/utilHelper.js";
-import User from "./models/user.js";
-import Task from "./models/task.js";
-import fs from "fs";
-import path from "path";
 
 const app = express();
 
@@ -23,9 +15,6 @@ export default class Application {
     this.setMongoConnection();
     this.setConfig();
     this.setRouters();
-    this.setupBackupScheduler();
-    this.setupEmailNotificationScheduler();
-    this.setupManualBackupCleanupScheduler();
   }
 
   setupExpress() {

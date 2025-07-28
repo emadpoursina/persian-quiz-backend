@@ -3,9 +3,6 @@ import adminController from "../../http/controllers/adminController.js";
 
 const router = express.Router();
 
-// Status
-router.get("/status", adminController.status);
-
 // Users
 router.get("/users", adminController.getAllUsers);
 router.get("/users/:userId", adminController.getUser);

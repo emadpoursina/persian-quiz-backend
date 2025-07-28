@@ -1,4 +1,3 @@
-import { omit } from "lodash";
 import User from "../../models/User.js";
 import { validateUser } from "../../models/User.js";
 
@@ -124,7 +123,8 @@ const adminController = {
       });
       await user.save();
       // Remove password from response
-      res.status(201).json(omit(user.toObject(), "password"));
+      const { password, ...userResponse } = user.toObject();
+      res.status(201).json(userResponse);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

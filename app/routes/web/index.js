@@ -6,13 +6,13 @@ import adminRouter from "./admin.js";
 import userRouter from "./user.js";
 
 // Middleware
-import authenticateMiddleware from "../../http/middleware/authenticateMiddleware.js";
+import authenticationMiddleware from "../../http/middleware/authenticationMiddleware.js";
 import isAdminMiddleware from "../../http/middleware/isAdminMiddleware.js";
 
 const router = express.Router();
 
 router.use("/auth", authRouter);
-router.use(authenticateMiddleware, isAdminMiddleware);
+router.use(authenticationMiddleware, isAdminMiddleware);
 router.use("/admin", adminRouter);
 router.use("/users", userRouter);
 
