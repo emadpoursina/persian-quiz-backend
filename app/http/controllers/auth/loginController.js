@@ -1,5 +1,5 @@
 import Controller from "../controller.js";
-import User from "../../../models/user.js";
+import User from "../../../models/User.js";
 
 class loginController extends Controller {
   async login(req, res, next) {

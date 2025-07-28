@@ -7,22 +7,26 @@ import bcrypt from "bcrypt";
 const Schema = mongoose.Schema;
 
 // Joi validation schema
-export const userValidationSchema = Joi.object({
+export const UserJoiSchema = Joi.object({
   name: Joi.string().min(3).max(50).required().trim(),
-  email: Joi.string().email().max(255).required(),
+  phone: Joi.string()
+    .pattern(/^09\d{8}$/)
+    .required()
+    .messages({
+      "string.pattern.base": "Enter a corroct phone number",
+    }),
   password: Joi.string().min(3).max(1024).required(),
   role: Joi.string().valid("user", "admin").default("user"),
   avatar: Joi.string().uri().optional(),
   isActive: Joi.boolean().default(true),
-  joinDate: Joi.date().required(),
 });
 
 // Validation function
 export const validateUser = (userData) => {
-  return userValidationSchema.validate(userData);
+  return UserJoiSchema.validate(userData);
 };
 
-const userSchema = new Schema(
+const UserSchema = new Schema(
   {
     name: {
       type: String,
@@ -31,12 +35,15 @@ const userSchema = new Schema(
       maxlength: 50,
       trim: true,
     },
-    email: {
+    phone: {
       type: String,
       required: true,
-      unique: true,
-      match: [/^\S+@\S+\.\S+$/, "Please use a valid email address."],
-      maxlength: 255,
+      match: [
+        /^09\d{8}$/,
+        "Phone number must start with 09 and be 10 digits long",
+      ],
+      unique: true, // Consider adding if phone numbers should be unique
+      trim: true,
     },
     password: { type: String, minLength: 3, maxLength: 1024, required: true },
     role: {
@@ -54,28 +61,15 @@ const userSchema = new Schema(
       type: Boolean,
       default: true,
     },
-    joinDate: {
-      type: Date,
-      required: true,
-    },
-    numberId: { type: Number, default: 0 },
   },
   { timestamps: true, toJSON: { virtuals: true } }
 );
 
-userSchema.pre("save", async function (next) {
-  if (this.isNew) {
-    this.numberId = await Counter.getNextSequence("numberId");
-  }
-  next();
-});
-
 // User Schema methods
-userSchema.methods.generateAuthToken = function () {
+UserSchema.methods.generateAuthToken = function () {
   return jwt.sign(
     {
       id: this._id,
-      email: this.email,
       role: this.role,
     },
     process.env.JWT_PRIVATE_KEY,
@@ -85,22 +79,15 @@ userSchema.methods.generateAuthToken = function () {
   );
 };
 
-userSchema.methods.comparePassword = function (password) {
+UserSchema.methods.comparePassword = function (password) {
   return bcrypt.compareSync(password, this.password);
 };
 
-userSchema.methods.hashPassword = function (password) {
-  let salt = bcrypt.genSaltSync(15);
-  let hash = bcrypt.hashSync(password, salt);
-
-  return hash;
-};
-
-userSchema.statics.hashPassword = async function (password) {
+UserSchema.statics.hashPassword = async function (password) {
   const salt = await bcrypt.genSalt(15);
   return await bcrypt.hash(password, salt);
 };
 
-userSchema.plugin(mongoosePaginate);
+UserSchema.plugin(mongoosePaginate);
 
-export default mongoose.model("User", userSchema);
+export default mongoose.model("User", UserSchema);
