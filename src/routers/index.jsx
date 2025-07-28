@@ -17,15 +17,18 @@ import NotFound from "@/pages/404Page";
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
-      {/* privacy */}
+      <Route path="/" element={<PersianQuizApp />} />
       {!authStorage.getToken() ? (
         <>
-          <Route path="/" element={<PersianQuizApp />} />
+          <Route path="/admin/*" element={<Navigate to="/login" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/*" element={<NotFound />} />
         </>
       ) : (
-        <Route path="/*" element={<PrivateRouter />} />
+        <>
+          <Route path="/login" element={<Navigate to="/admin/dashboard" />} />
+          <Route path="/*" element={<PrivateRouter />} />
+        </>
       )}
     </Route>
   )

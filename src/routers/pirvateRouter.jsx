@@ -2,14 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
 
-// Public pages
-
-// Admin pages
+// Pages
+import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
+import NotFound from "@/pages/404Page";
 
 const PrivateRouter = () => {
   const [isReady, setIsReady] = useState(false);
-
   const { setCurrentUser, currentUser } = useAuth();
+
+  // Pages
 
   useEffect(() => {
     preload();
@@ -35,12 +36,11 @@ const PrivateRouter = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      {/* Admin routes */}
       <Route
         path="admin"
         element={<Navigate to="/admin/dashboard" replace />}
       />
+      <Route path="login" element={<Navigate to="/admin/dashboard" />} />
       <Route path="admin/dashboard" element={<AdminDashboardPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
