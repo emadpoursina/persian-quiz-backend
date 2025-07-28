@@ -1,6 +1,12 @@
-import { usePathname, useRouter } from "next/navigation"
-import Link from "next/link"
-import { LayoutDashboard, FileText, Plus, LogOut, BookOpen, X } from "lucide-react"
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import {
+  LayoutDashboard,
+  FileText,
+  Plus,
+  LogOut,
+  BookOpen,
+  X,
+} from "lucide-react";
 
 const menuItems = [
   {
@@ -18,19 +24,20 @@ const menuItems = [
     url: "/admin/quizzes/create",
     icon: Plus,
   },
-]
+];
 
 export default function CustomSidebar({ isOpen, onClose }) {
-  const pathname = usePathname()
-  const router = useRouter()
+  const navigate = useNavigate();
+  const pathname = useLocation().pathname;
 
   const handleLogout = () => {
-    localStorage.removeItem("adminLoggedIn")
-    localStorage.removeItem("adminUser")
-    router.push("/admin/login")
-  }
+    localStorage.removeItem("adminLoggedIn");
+    localStorage.removeItem("adminUser");
+    navigate("/admin/login");
+  };
 
-  const adminUser = typeof window !== "undefined" ? localStorage.getItem("adminUser") : null
+  const adminUser =
+    typeof window !== "undefined" ? localStorage.getItem("adminUser") : null;
 
   return (
     <>
@@ -44,7 +51,9 @@ export default function CustomSidebar({ isOpen, onClose }) {
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-800">پنل مدیریت</h2>
-              <p className="text-sm text-gray-600">{adminUser ? `خوش آمدید ${adminUser}` : "آزمون‌های آنلاین"}</p>
+              <p className="text-sm text-gray-600">
+                {adminUser ? `خوش آمدید ${adminUser}` : "آزمون‌های آنلاین"}
+              </p>
             </div>
           </div>
         </div>
@@ -52,14 +61,16 @@ export default function CustomSidebar({ isOpen, onClose }) {
         {/* Navigation */}
         <div className="p-4">
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">مدیریت اصلی</h3>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+              مدیریت اصلی
+            </h3>
             <nav className="space-y-2">
               {menuItems.map((item) => {
-                const isActive = pathname === item.url
+                const isActive = pathname === item.url;
                 return (
                   <Link
                     key={item.title}
-                    href={item.url}
+                    to={item.url}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                       isActive
                         ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg"
@@ -69,7 +80,7 @@ export default function CustomSidebar({ isOpen, onClose }) {
                     <item.icon className="w-5 h-5" />
                     <span className="font-medium">{item.title}</span>
                   </Link>
-                )
+                );
               })}
             </nav>
           </div>
@@ -104,7 +115,10 @@ export default function CustomSidebar({ isOpen, onClose }) {
               <p className="text-sm text-gray-600">{adminUser || "آزمون‌ها"}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
             <X className="w-6 h-6 text-gray-600" />
           </button>
         </div>
@@ -112,10 +126,12 @@ export default function CustomSidebar({ isOpen, onClose }) {
         {/* Mobile Navigation */}
         <div className="p-4">
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">مدیریت اصلی</h3>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+              مدیریت اصلی
+            </h3>
             <nav className="space-y-2">
               {menuItems.map((item) => {
-                const isActive = pathname === item.url
+                const isActive = pathname === item.url;
                 return (
                   <Link
                     key={item.title}
@@ -130,7 +146,7 @@ export default function CustomSidebar({ isOpen, onClose }) {
                     <item.icon className="w-5 h-5" />
                     <span className="font-medium">{item.title}</span>
                   </Link>
-                )
+                );
               })}
             </nav>
           </div>
@@ -148,5 +164,5 @@ export default function CustomSidebar({ isOpen, onClose }) {
         </div>
       </div>
     </>
-  )
+  );
 }

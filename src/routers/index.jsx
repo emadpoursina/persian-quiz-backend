@@ -11,7 +11,7 @@ import PrivateRouter from "./pirvateRouter";
 
 // Pages
 import PersianQuizApp from "@/pages/PersianQuizApp";
-import Login from "@/pages/Login";
+import Login from "@/pages/admin/Login";
 import NotFound from "@/pages/404Page";
 
 const router = createBrowserRouter(
