@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { User, Lock, BookOpen } from "lucide-react";
 
 export default function AdminLoginPage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
       // Accept any username and password
       localStorage.setItem("adminLoggedIn", "true");
       localStorage.setItem("adminUser", username);
-      router.push("/admin");
+      navigate("/admin");
     }, 1000);
   };
 
