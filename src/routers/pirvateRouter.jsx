@@ -5,6 +5,7 @@ import useAuth from "@/hooks/useAuth";
 // Pages
 import AdminLayout from "@/components/Layouts/AdminLayout";
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
+import AddQuizPage from "@/pages/admin/quiz/AddQuiz"
 import NotFound from "@/pages/404Page";
 
 const PrivateRouter = () => {
@@ -42,6 +43,7 @@ const PrivateRouter = () => {
       <Route path="admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="/admin/dashboard" />} />
         <Route path="dashboard" element={<AdminDashboardPage />} />
+        <Route path="quizzes/create" element={<AddQuizPage />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
