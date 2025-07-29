@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,19 @@ import { ArrowRight, Save, FileText } from "lucide-react";
 
 export default function CreateQuizPage() {
   const navigate = useNavigate();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [slug, setSlug] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: {
+      title: "",
+      description: "",
+      slug: "",
+    },
+  });
 
   const generateSlug = (title) => {
     return title
@@ -22,52 +31,31 @@ export default function CreateQuizPage() {
       .replace(/^-+|-+$/g, "");
   };
 
-  const handleTitleChange = (value) => {
-    setTitle(value);
-    if (!slug || slug === generateSlug(title)) {
-      setSlug(generateSlug(value));
+  const watchedTitle = watch("title");
+  const watchedSlug = watch("slug");
+
+  // Automatically generate slug when title changes
+  const handleTitleChange = (e) => {
+    const newTitle = e.target.value;
+    setValue("title", newTitle);
+    if (!watchedSlug || watchedSlug === generateSlug(watchedTitle)) {
+      setValue("slug", generateSlug(newTitle));
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!title.trim() || !description.trim() || !slug.trim()) return;
-
-    setIsSubmitting(true);
-
+  const onSubmit = async (data) => {
     try {
-      // Check if slug already exists
-      const savedQuizzes = localStorage.getItem("adminQuizzes");
-      const existingQuizzes = savedQuizzes ? JSON.parse(savedQuizzes) : [];
-
-      if (existingQuizzes.some((q) => q.slug === slug)) {
-        alert(
-          "این نام مستعار قبلاً استفاده شده است. لطفاً نام دیگری انتخاب کنید."
-        );
-        setIsSubmitting(false);
-        return;
-      }
-
       const newQuiz = {
-        id: Date.now().toString(),
-        title: title.trim(),
-        description: description.trim(),
-        slug: slug.trim(),
-        questions: [],
-        isActive: false,
-        createdAt: new Date().toISOString(),
+        title: data.title.trim(),
+        description: data.description.trim(),
+        slug: data.slug.trim(),
       };
 
-      const updatedQuizzes = [...existingQuizzes, newQuiz];
-      localStorage.setItem("adminQuizzes", JSON.stringify(updatedQuizzes));
-
       // Redirect to quiz management page
-      navigate(`/admin/quizzes/${newQuiz.id}/questions`);
+      // navigate(`/admin/quizzes/${newQuiz.id}/questions`);
     } catch (error) {
       console.error("Error creating quiz:", error);
       alert("خطا در ایجاد آزمون. لطفاً دوباره تلاش کنید.");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -77,7 +65,7 @@ export default function CreateQuizPage() {
         <SidebarTrigger />
         <Button
           variant="ghost"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/admin/dashboard")}
           className="text-gray-600 hover:text-gray-800"
         >
           <ArrowRight className="w-4 h-4 ml-1" />
@@ -94,7 +82,7 @@ export default function CreateQuizPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
@@ -102,12 +90,18 @@ export default function CreateQuizPage() {
                   </label>
                   <Input
                     type="text"
-                    value={title}
-                    onChange={(e) => handleTitleChange(e.target.value)}
+                    {...register("title", {
+                      required: "عنوان آزمون الزامی است",
+                      onChange: handleTitleChange,
+                    })}
                     placeholder="مثال: آزمون دانش عمومی"
                     className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20"
-                    required
                   />
+                  {errors.title && (
+                    <p className="text-xs text-red-500">
+                      {errors.title.message}
+                    </p>
+                  )}
                   <p className="text-xs text-gray-500">
                     عنوان آزمون که برای کاربران نمایش داده می‌شود
                   </p>
@@ -123,23 +117,26 @@ export default function CreateQuizPage() {
                     </span>
                     <Input
                       type="text"
-                      value={slug}
-                      onChange={(e) =>
-                        setSlug(
-                          e.target.value
-                            .toLowerCase()
-                            .replace(/[^a-z0-9-]/g, "")
-                        )
-                      }
+                      {...register("slug", {
+                        required: "نام مستعار الزامی است",
+                        pattern: {
+                          value: /^[a-z0-9-]+$/,
+                          message: "فقط حروف کوچک، اعداد و خط تیره مجاز است",
+                        },
+                      })}
                       placeholder="quiz-name"
                       className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20 rounded-r-none"
-                      required
                     />
                   </div>
+                  {errors.slug && (
+                    <p className="text-xs text-red-500">
+                      {errors.slug.message}
+                    </p>
+                  )}
                   <p className="text-xs text-gray-500">
                     آدرس آزمون:{" "}
                     <code className="bg-gray-100 px-1 rounded">
-                      /quiz/{slug || "quiz-name"}
+                      /quiz/{watchedSlug || "quiz-name"}
                     </code>
                   </p>
                 </div>
@@ -150,13 +147,18 @@ export default function CreateQuizPage() {
                   توضیحات *
                 </label>
                 <Textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  {...register("description", {
+                    required: "توضیحات آزمون الزامی است",
+                  })}
                   placeholder="توضیح مختصری درباره آزمون، موضوع و هدف آن..."
                   rows={4}
                   className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20 w-full"
-                  required
                 />
+                {errors.description && (
+                  <p className="text-xs text-red-500">
+                    {errors.description.message}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500">
                   توضیحات آزمون که در صفحه ورود نمایش داده می‌شود
                 </p>
@@ -174,12 +176,7 @@ export default function CreateQuizPage() {
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <Button
                   type="submit"
-                  disabled={
-                    isSubmitting ||
-                    !title.trim() ||
-                    !description.trim() ||
-                    !slug.trim()
-                  }
+                  disabled={isSubmitting}
                   className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
                 >
                   {isSubmitting ? (
@@ -197,7 +194,7 @@ export default function CreateQuizPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate(-1)}
+                  onClick={() => navigate("/admin/dashboard")}
                 >
                   انصراف
                 </Button>
