@@ -1,5 +1,5 @@
-import { usePathname, useRouter } from "next/navigation"
-import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Sidebar,
   SidebarContent,
@@ -13,8 +13,14 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { LayoutDashboard, FileText, Plus, LogOut, BookOpen } from "lucide-react"
+} from "@/components/ui/sidebar";
+import {
+  LayoutDashboard,
+  FileText,
+  Plus,
+  LogOut,
+  BookOpen,
+} from "lucide-react";
 
 const menuItems = [
   {
@@ -29,25 +35,31 @@ const menuItems = [
   },
   {
     title: "ایجاد آزمون",
-    url: "/admin/quizzes/create",
+    url: "/admin/quizzes/add",
     icon: Plus,
   },
-]
+];
 
 export default function AdminSidebar() {
-  const pathname = usePathname()
-  const router = useRouter()
+  const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogout = () => {
-    localStorage.removeItem("adminLoggedIn")
-    localStorage.removeItem("adminUser")
-    router.push("/admin/login")
-  }
+    localStorage.removeItem("adminLoggedIn");
+    localStorage.removeItem("adminUser");
+    router.push("/admin/login");
+  };
 
-  const adminUser = typeof window !== "undefined" ? localStorage.getItem("adminUser") : null
+  const adminUser =
+    typeof window !== "undefined" ? localStorage.getItem("adminUser") : null;
 
   return (
-    <Sidebar side="right" className="border-r border-gray-200 bg-white order-2" collapsible="icon" variant="sidebar">
+    <Sidebar
+      side="right"
+      className="border-r border-gray-200 bg-white order-2"
+      collapsible="icon"
+      variant="sidebar"
+    >
       {/* Header */}
       <SidebarHeader className="border-b border-gray-200">
         <div className="flex items-center justify-between p-4">
@@ -57,7 +69,9 @@ export default function AdminSidebar() {
             </div>
             <div className="group-data-[collapsible=icon]:hidden">
               <h2 className="text-lg font-bold text-gray-800">پنل مدیریت</h2>
-              <p className="text-sm text-gray-600">{adminUser ? `خوش آمدید ${adminUser}` : "آزمون‌های آنلاین"}</p>
+              <p className="text-sm text-gray-600">
+                {adminUser ? `خوش آمدید ${adminUser}` : "آزمون‌های آنلاین"}
+              </p>
             </div>
           </div>
           <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
@@ -80,9 +94,14 @@ export default function AdminSidebar() {
                     tooltip={item.title}
                     className="w-full justify-start"
                   >
-                    <Link href={item.url} className="flex items-center gap-3 px-3 py-2 rounded-lg">
+                    <Link
+                      href={item.url}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg"
+                    >
                       <item.icon className="w-5 h-5 shrink-0" />
-                      <span className="group-data-[collapsible=icon]:sr-only">{item.title}</span>
+                      <span className="group-data-[collapsible=icon]:sr-only">
+                        {item.title}
+                      </span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -102,7 +121,9 @@ export default function AdminSidebar() {
               tooltip="خروج"
             >
               <LogOut className="w-5 h-5 shrink-0" />
-              <span className="group-data-[collapsible=icon]:sr-only">خروج</span>
+              <span className="group-data-[collapsible=icon]:sr-only">
+                خروج
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -110,5 +131,5 @@ export default function AdminSidebar() {
 
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

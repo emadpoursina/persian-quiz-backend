@@ -21,7 +21,7 @@ const menuItems = [
   },
   {
     title: "ایجاد آزمون",
-    url: "/admin/quizzes/create",
+    url: "/admin/quizzes/add",
     icon: Plus,
   },
 ];
