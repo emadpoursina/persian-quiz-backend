@@ -7,7 +7,7 @@ import {
 import authStorage from "@/helpers/storage";
 
 // Routers
-import PrivateRouter from "./pirvateRouter";
+import PrivateRouter from "./privateRouter";
 
 // Pages
 import PersianQuizApp from "@/pages/PersianQuizApp";
