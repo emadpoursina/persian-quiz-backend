@@ -1,8 +1,9 @@
 import { useState } from "react";
 import CustomSidebar from "@/components/CustomSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Outlet } from "react-router-dom";
 
-export default function AdminLayout({ children }) {
+export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -39,7 +40,7 @@ export default function AdminLayout({ children }) {
           </div>
 
           {/* Page Content */}
-          <div className="admin-page flex-1">{children}</div>
+          <div className="admin-page flex-1"><Outlet /></div>
         </main>
 
         {/* Custom Sidebar */}

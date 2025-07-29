@@ -11,7 +11,6 @@ import {
   Target,
   Download,
 } from "lucide-react";
-import AdminLayout from "@/components/Layouts/AdminLayout";
 
 export default function ResultsPage() {
   const params = useParams();
@@ -134,7 +133,6 @@ export default function ResultsPage() {
   };
 
   return (
-    <AdminLayout>
       <div className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
           <SidebarTrigger />
@@ -382,6 +380,5 @@ export default function ResultsPage() {
           </Card>
         </div>
       </div>
-    </AdminLayout>
   );
 }

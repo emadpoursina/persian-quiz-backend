@@ -3,6 +3,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
 
 // Pages
+import AdminLayout from "@/components/Layouts/AdminLayout";
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import NotFound from "@/pages/404Page";
 
@@ -36,12 +37,13 @@ const PrivateRouter = () => {
 
   return (
     <Routes>
-      <Route
-        path="admin"
-        element={<Navigate to="/admin/dashboard" replace />}
-      />
       <Route path="login" element={<Navigate to="/admin/dashboard" />} />
-      <Route path="admin/dashboard" element={<AdminDashboardPage />} />
+
+      <Route path="admin" element={<AdminLayout />}>
+        <Route index element={<Navigate to="/admin/dashboard" />} />
+        <Route path="dashboard" element={<AdminDashboardPage />} />
+      </Route>
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
