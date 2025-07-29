@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,11 +18,11 @@ import {
   Link,
 } from "lucide-react";
 
-import TinyMCEEditor from "@/components/tinymce-editor";
+import TinyMCEEditor from "@/components/TinymceEditor";
 
 export default function QuestionsPage() {
-  const params = useParams();
-  const router = useRouter();
+  const params = useLocation().pathname;
+  const navigate = useNavigate();
   const quizId = params.id;
 
   const [quiz, setQuiz] = useState(null);
@@ -37,10 +37,10 @@ export default function QuestionsPage() {
       if (foundQuiz) {
         setQuiz(foundQuiz);
       } else {
-        router.push("/admin/quizzes");
+        // navigate("/admin/quizzes");
       }
     }
-  }, [quizId, router]);
+  }, [quizId, navigate]);
 
   const saveQuiz = (updatedQuiz) => {
     const savedQuizzes = localStorage.getItem("adminQuizzes");
@@ -116,7 +116,7 @@ export default function QuestionsPage() {
         <SidebarTrigger />
         <Button
           variant="ghost"
-          onClick={() => router.push("/admin/quizzes")}
+          onClick={() => navigate("/admin/quizzes")}
           className="text-gray-600 hover:text-gray-800"
         >
           <ArrowRight className="w-4 h-4 ml-1" />
