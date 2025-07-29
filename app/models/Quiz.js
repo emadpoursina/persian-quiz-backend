@@ -1,0 +1,164 @@
+const mongoose = require("mongoose");
+const Joi = require("joi");
+const mongoosePaginate = require("mongoose-paginate-v2");
+const Schema = mongoose.Schema;
+
+// Option Schema (embedded in Question)
+const OptionSchema = new Schema({
+  text: {
+    type: String,
+    required: true,
+  },
+  isCorrect: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+});
+
+// Question Schema (embedded in Quiz)
+const QuestionSchema = new Schema({
+  questionText: {
+    type: String,
+    required: true,
+  },
+  options: {
+    type: [OptionSchema],
+    validate: {
+      validator: function (v) {
+        return v.length === 4;
+      },
+      message: (props) =>
+        `A question must have exactly 4 options, got ${props.value.length}`,
+    },
+    required: true,
+  },
+});
+
+// Quiz Schema
+const quizSchema = new Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  description: {
+    type: String,
+    required: false,
+  },
+  questions: {
+    type: [QuestionSchema],
+    default: [],
+  },
+  isActive: {
+    type: Boolean,
+    default: false,
+  },
+  timeLimit: {
+    type: Number,
+    default: 0,
+  },
+  passingScore: {
+    type: Number,
+    default: 70,
+  },
+});
+
+// Validate that exactly one option is correct for each question
+quizSchema.pre("save", function (next) {
+  for (const question of this.questions) {
+    const correctOptions = question.options.filter(
+      (opt) => opt.isCorrect
+    ).length;
+    if (correctOptions !== 1) {
+      throw new Error(
+        `هر سوال باید تنها یک جواب  صحیح داشته باشد. سوال ${question.questionText} دارای ${correctOptions} جواب صحیح است.`
+      );
+    }
+  }
+  next();
+});
+
+// Add pagination plugin
+quizSchema.plugin(mongoosePaginate);
+
+const Quiz = mongoose.model("Quiz", quizSchema);
+
+// Joi Validation Schemas
+const optionValidationSchema = Joi.object({
+  text: Joi.string().required().messages({
+    "string.empty": "جواب نمیتواند خالی  باشد.",
+    "any.required": "جواب نمیتواند خالی  باشد.",
+  }),
+  isCorrect: Joi.boolean().required().messages({
+    "boolean.base": "یک جواب صحیح درست وارد کنید.",
+    "any.required": "حداقل یک جواب صحیح وارد کنید.",
+  }),
+});
+
+const questionValidationSchema = Joi.object({
+  questionText: Joi.string().required().messages({
+    "string.empty": "سوال نمیتواند خالی باشد.",
+    "any.required": "سوال نمیتواند متن نداشته باشد.",
+  }),
+  options: Joi.array()
+    .items(optionValidationSchema)
+    .length(4)
+    .required()
+    .messages({
+      "array.base": "Options must be an array",
+      "array.length": "Exactly 4 options are required",
+      "any.required": "Options are required",
+    }),
+  explanation: Joi.string().allow("").optional(),
+})
+  .custom((value, helpers) => {
+    const correctOptions = value.options.filter((opt) => opt.isCorrect).length;
+    if (correctOptions !== 1) {
+      return helpers.error("any.invalid");
+    }
+    return value;
+  })
+  .messages({
+    "any.invalid": "Each question must have exactly one correct option",
+  });
+
+const quizValidationSchema = Joi.object({
+  title: Joi.string().trim().required().messages({
+    "string.empty": "Title cannot be empty",
+    "any.required": "Title is required",
+  }),
+  description: Joi.string().allow("").optional(),
+  questions: Joi.array()
+    .items(questionValidationSchema)
+    .min(1)
+    .required()
+    .messages({
+      "array.base": "Questions must be an array",
+      "array.min": "At least one question is required",
+      "any.required": "Questions are required",
+    }),
+  isActive: Joi.boolean().default(false),
+  timeLimit: Joi.number().integer().min(0).default(0),
+  passingScore: Joi.number().integer().min(0).max(100).default(70),
+});
+
+// Validation functions
+function validateQuiz(quiz) {
+  return quizValidationSchema.validate(quiz, { abortEarly: false });
+}
+
+function validateQuestion(question) {
+  return questionValidationSchema.validate(question, { abortEarly: false });
+}
+
+function validateOption(option) {
+  return optionValidationSchema.validate(option, { abortEarly: false });
+}
+
+module.exports = {
+  Quiz,
+  validateQuiz,
+  validateQuestion,
+  validateOption,
+};
