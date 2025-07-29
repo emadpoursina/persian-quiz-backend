@@ -42,9 +42,15 @@ const quizSchema = new Schema({
     required: true,
     trim: true,
   },
+  slug: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true,
+  },
   description: {
     type: String,
-    required: false,
   },
   questions: {
     type: [QuestionSchema],
@@ -75,6 +81,20 @@ quizSchema.pre("save", function (next) {
         `هر سوال باید تنها یک جواب  صحیح داشته باشد. سوال ${question.questionText} دارای ${correctOptions} جواب صحیح است.`
       );
     }
+  }
+  next();
+});
+
+// Pre-save hook to format slug
+quizSchema.pre("save", function (next) {
+  if (this.slug) {
+    let formatted = this.slug
+      .toLowerCase()
+      .replace(/\s+/g, "-") // Replace spaces with hyphens
+      .replace(/[^a-z0-9-]/g, "") // Remove invalid characters
+      .replace(/--+/g, "-") // Replace multiple hyphens with one
+      .replace(/^-+|-+$/g, ""); // Trim leading/trailing hyphens
+    this.slug = formatted;
   }
   next();
 });
@@ -128,6 +148,15 @@ const quizValidationSchema = Joi.object({
     "string.empty": "Title cannot be empty",
     "any.required": "Title is required",
   }),
+  slug: Joi.string()
+    .trim()
+    .required()
+    .pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .messages({
+      "string.empty": "Slug cannot be empty",
+      "any.required": "Slug is required",
+      "string.pattern.base": "Slug format is incorrect",
+    }),
   description: Joi.string().allow("").optional(),
   questions: Joi.array()
     .items(questionValidationSchema)
