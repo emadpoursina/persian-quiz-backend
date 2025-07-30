@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ArrowRight, Save, FileText } from "lucide-react";
+import { addQuiz } from "@/hooks/useQuiz";
+import { generateSlug } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 export default function CreateQuizPage() {
   const navigate = useNavigate();
@@ -14,7 +17,7 @@ export default function CreateQuizPage() {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     defaultValues: {
       title: "",
@@ -22,14 +25,7 @@ export default function CreateQuizPage() {
       slug: "",
     },
   });
-
-  const generateSlug = (title) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9\u0600-\u06FF\s]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  };
+  const { mutateAsync, isLoading, isError, error } = addQuiz();
 
   const watchedTitle = watch("title");
   const watchedSlug = watch("slug");
@@ -43,19 +39,23 @@ export default function CreateQuizPage() {
     }
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (formData) => {
     try {
       const newQuiz = {
-        title: data.title.trim(),
-        description: data.description.trim(),
-        slug: data.slug.trim(),
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        slug: formData.slug.trim(),
       };
 
-      // Redirect to quiz management page
-      // navigate(`/admin/quizzes/${newQuiz.id}/questions`);
+      const createdQuiz = await mutateAsync(newQuiz);
+
+      setTimeout(() => {
+        navigate(`/admin/quizzes/${createdQuiz._id}/questions`);
+      }, 1000);
+      toast.success("آزمون با موفقیت ایجاد شد.");
     } catch (error) {
+      // Error is handled by the mutation
       console.error("Error creating quiz:", error);
-      alert("خطا در ایجاد آزمون. لطفاً دوباره تلاش کنید.");
     }
   };
 
@@ -164,6 +164,18 @@ export default function CreateQuizPage() {
                 </p>
               </div>
 
+              {isError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h4 className="font-medium text-red-800 mb-2">
+                    خطا در ایجاد آزمون:
+                  </h4>
+                  <p className="text-sm text-red-700">
+                    {error?.message ||
+                      "خطا در ایجاد آزمون. لطفاً دوباره تلاش کنید."}
+                  </p>
+                </div>
+              )}
+
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h4 className="font-medium text-blue-800 mb-2">مراحل بعدی:</h4>
                 <ul className="text-sm text-blue-700 space-y-1">
@@ -176,10 +188,10 @@ export default function CreateQuizPage() {
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isLoading}
                   className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
                 >
-                  {isSubmitting ? (
+                  {isLoading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-2" />
                       در حال ایجاد...
