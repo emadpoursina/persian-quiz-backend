@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ArrowRight, Save, FileText } from "lucide-react";
-import { addQuiz } from "@/hooks/useQuiz";
+import useQuiz from "@/hooks/useQuiz";
 import { generateSlug } from "@/lib/utils";
 import toast from "react-hot-toast";
 
@@ -25,7 +25,7 @@ export default function CreateQuizPage() {
       slug: "",
     },
   });
-  const { mutateAsync, isLoading, isError, error } = addQuiz();
+  const { mutateAsync, isLoading, isError, error } = useQuiz.addQuiz();
 
   const watchedTitle = watch("title");
   const watchedSlug = watch("slug");

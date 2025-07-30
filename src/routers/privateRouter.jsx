@@ -46,7 +46,7 @@ const PrivateRouter = () => {
         <Route path="dashboard" element={<AdminDashboardPage />} />
         <Route path="quizzes/add" element={<AddQuizPage />} />
         <Route
-          path="quizzes/:quizId/questions"
+          path="quizzes/:id/questions"
           element={<EditQuizQuestionsPage />}
         />
       </Route>
