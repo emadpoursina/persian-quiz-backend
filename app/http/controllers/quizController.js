@@ -41,8 +41,27 @@ const quizController = {
         return res.status(404).json({ error: "Quiz not found." });
       }
 
-      // Assign questions and save
-      quiz.questions = questions;
+      // For each question, handle attachmentUrl (either a single file or a single url)
+      const processedQuestions = questions.map((q) => {
+        let { attachmentUrl, ...rest } = q;
+        // Handle attachment - either uploaded file or URL
+        let finalAttachmentUrl = attachmentUrl || "";
+
+        // If file was uploaded, use the file path
+        if (req.file) {
+          // Construct the URL for the uploaded file
+          const baseUrl = `${req.protocol}://${req.get("host")}`;
+          finalAttachmentUrl = `${baseUrl}/upload/question/${req.file.filename}`;
+        }
+
+        return {
+          ...rest,
+          attachmentUrl: finalAttachmentUrl,
+        };
+      });
+
+      // Assign processed questions and save
+      quiz.questions = processedQuestions;
       await quiz.save();
 
       res

@@ -33,6 +33,7 @@ const QuestionSchema = new Schema({
     },
     required: true,
   },
+  attachmentUrl: {type: String, default: ""}
 });
 
 // Quiz Schema
