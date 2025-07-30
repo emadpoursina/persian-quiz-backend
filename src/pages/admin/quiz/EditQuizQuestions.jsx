@@ -1,10 +1,3 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   ArrowRight,
   Plus,
@@ -17,41 +10,30 @@ import {
   Video,
   Link,
 } from "lucide-react";
-
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import TinyMCEEditor from "@/components/TinymceEditor";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import useQuiz from "@/hooks/useQuiz";
 
 export default function QuestionsPage() {
-  const params = useLocation().pathname;
   const navigate = useNavigate();
-  const quizId = params.id;
+  const { id: quizId } = useParams();
 
-  const [quiz, setQuiz] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
 
-  useEffect(() => {
-    const savedQuizzes = localStorage.getItem("adminQuizzes");
-    if (savedQuizzes) {
-      const quizzes = JSON.parse(savedQuizzes);
-      const foundQuiz = quizzes.find((q) => q.id === quizId);
-      if (foundQuiz) {
-        setQuiz(foundQuiz);
-      } else {
-        // navigate("/admin/quizzes");
-      }
-    }
-  }, [quizId, navigate]);
+  // Use the useQuiz hook to fetch quiz data
+  const { data: quiz, isLoading, error } = useQuiz.getQuiz(quizId);
 
   const saveQuiz = (updatedQuiz) => {
-    const savedQuizzes = localStorage.getItem("adminQuizzes");
-    if (savedQuizzes) {
-      const quizzes = JSON.parse(savedQuizzes);
-      const updatedQuizzes = quizzes.map((q) =>
-        q.id === quizId ? updatedQuiz : q
-      );
-      localStorage.setItem("adminQuizzes", JSON.stringify(updatedQuizzes));
-      setQuiz(updatedQuiz);
-    }
+    console.log("Saving quiz data:", updatedQuiz);
+    // In demo state - just log the data
   };
 
   const addQuestion = (question, options, correct, media) => {
@@ -70,7 +52,8 @@ export default function QuestionsPage() {
       questions: [...quiz.questions, newQuestion],
     };
 
-    saveQuiz(updatedQuiz);
+    console.log("Adding question:", newQuestion);
+    console.log("Updated quiz:", updatedQuiz);
     setIsAdding(false);
   };
 
@@ -84,7 +67,14 @@ export default function QuestionsPage() {
       ),
     };
 
-    saveQuiz(updatedQuiz);
+    console.log("Updating question:", {
+      questionId,
+      question,
+      options,
+      correct,
+      media,
+    });
+    console.log("Updated quiz:", updatedQuiz);
     setEditingQuestion(null);
   };
 
@@ -97,14 +87,35 @@ export default function QuestionsPage() {
       questions: quiz.questions.filter((q) => q.id !== questionId),
     };
 
-    saveQuiz(updatedQuiz);
+    console.log("Deleting question:", questionId);
+    console.log("Updated quiz:", updatedQuiz);
   };
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <p className="text-gray-500">در حال بارگذاری...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <p className="text-red-500">خطا در بارگذاری آزمون: {error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!quiz) {
     return (
       <div className="p-6">
         <div className="text-center">
-          <p className="text-gray-500">در حال بارگذاری...</p>
+          <p className="text-gray-500">آزمون یافت نشد</p>
         </div>
       </div>
     );
@@ -307,15 +318,31 @@ export default function QuestionsPage() {
 
 // Question Form Component
 function QuestionForm({ question, onSubmit, onCancel }) {
-  const [questionText, setQuestionText] = useState(question?.question || "");
-  const [options, setOptions] = useState(question?.options || ["", "", "", ""]);
-  const [correct, setCorrect] = useState(question?.correct || 0);
-  const [media, setMedia] = useState < Question["media"] > question?.media;
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+    reset,
+  } = useForm({
+    defaultValues: {
+      questionText: question?.question || "",
+      options: question?.options || ["", "", "", ""],
+      correct: question?.correct || 0,
+      media: question?.media || null,
+    },
+  });
+
   const [showImageInput, setShowImageInput] = useState(false);
   const [showVideoInput, setShowVideoInput] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [imageAlt, setImageAlt] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+
+  const watchedOptions = watch("options");
+  const watchedCorrect = watch("correct");
+  const watchedMedia = watch("media");
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
@@ -323,7 +350,7 @@ function QuestionForm({ question, onSubmit, onCancel }) {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result;
-        setMedia({
+        setValue("media", {
           type: "image",
           url: result,
           alt: imageAlt || file.name,
@@ -338,7 +365,7 @@ function QuestionForm({ question, onSubmit, onCancel }) {
 
   const handleImageUrl = () => {
     if (imageUrl.trim()) {
-      setMedia({
+      setValue("media", {
         type: "image",
         url: imageUrl.trim(),
         alt: imageAlt.trim() || "تصویر سوال",
@@ -363,7 +390,7 @@ function QuestionForm({ question, onSubmit, onCancel }) {
         embedUrl = embedUrl.replace("youtu.be/", "youtube.com/embed/");
       }
 
-      setMedia({
+      setValue("media", {
         type: "video",
         url: embedUrl,
       });
@@ -373,19 +400,18 @@ function QuestionForm({ question, onSubmit, onCancel }) {
   };
 
   const removeMedia = () => {
-    setMedia(undefined);
+    setValue("media", null);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const onSubmit = (data) => {
     // Remove HTML tags for validation
-    const plainText = questionText.replace(/<[^>]*>/g, "").trim();
-    if (plainText && options.every((opt) => opt.trim())) {
+    const plainText = data.questionText.replace(/<[^>]*>/g, "").trim();
+    if (plainText && data.options.every((opt) => opt.trim())) {
       onSubmit(
-        questionText.trim(),
-        options.map((opt) => opt.trim()),
-        correct,
-        media
+        data.questionText.trim(),
+        data.options.map((opt) => opt.trim()),
+        data.correct,
+        data.media
       );
     }
   };
@@ -395,14 +421,14 @@ function QuestionForm({ question, onSubmit, onCancel }) {
       <h3 className="font-medium text-blue-800 mb-4">
         {question ? "ویرایش سوال" : "افزودن سوال جدید"}
       </h3>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             متن سوال *
           </label>
           <TinyMCEEditor
-            value={questionText}
-            onChange={setQuestionText}
+            value={watch("questionText")}
+            onChange={(value) => setValue("questionText", value)}
             placeholder="متن سوال را وارد کنید..."
             className="bg-white"
           />
@@ -417,20 +443,20 @@ function QuestionForm({ question, onSubmit, onCancel }) {
             رسانه (اختیاری)
           </label>
 
-          {media ? (
+          {watchedMedia ? (
             <div className="p-4 bg-white border border-gray-300 rounded-lg">
-              {media.type === "image" ? (
+              {watchedMedia.type === "image" ? (
                 <div className="flex items-center gap-4">
                   <img
-                    src={media.url || "/placeholder.svg"}
-                    alt={media.alt}
+                    src={watchedMedia.url || "/placeholder.svg"}
+                    alt={watchedMedia.alt}
                     className="w-20 h-20 object-cover rounded border"
                   />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-800">
                       تصویر انتخاب شده
                     </p>
-                    <p className="text-xs text-gray-500">{media.alt}</p>
+                    <p className="text-xs text-gray-500">{watchedMedia.alt}</p>
                   </div>
                   <Button
                     type="button"
@@ -452,7 +478,7 @@ function QuestionForm({ question, onSubmit, onCancel }) {
                       ویدیو انتخاب شده
                     </p>
                     <p className="text-xs text-gray-500 truncate">
-                      {media.url}
+                      {watchedMedia.url}
                     </p>
                   </div>
                   <Button
@@ -595,16 +621,11 @@ function QuestionForm({ question, onSubmit, onCancel }) {
             گزینه‌ها *
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {options.map((option, index) => (
+            {watchedOptions.map((option, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Input
-                    value={option}
-                    onChange={(e) => {
-                      const newOptions = [...options];
-                      newOptions[index] = e.target.value;
-                      setOptions(newOptions);
-                    }}
+                    {...register(`options.${index}`)}
                     placeholder={`گزینه ${index + 1}`}
                     className="bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
                     required
@@ -612,16 +633,18 @@ function QuestionForm({ question, onSubmit, onCancel }) {
                   <Button
                     type="button"
                     size="sm"
-                    variant={index === correct ? "default" : "outline"}
-                    onClick={() => setCorrect(index)}
+                    variant={index === watchedCorrect ? "default" : "outline"}
+                    onClick={() => setValue("correct", index)}
                     className={
-                      index === correct ? "bg-green-500 hover:bg-green-600" : ""
+                      index === watchedCorrect
+                        ? "bg-green-500 hover:bg-green-600"
+                        : ""
                     }
                   >
-                    {index === correct ? "✓" : index + 1}
+                    {index === watchedCorrect ? "✓" : index + 1}
                   </Button>
                 </div>
-                {index === correct && (
+                {index === watchedCorrect && (
                   <p className="text-xs text-green-600">
                     این گزینه پاسخ صحیح است
                   </p>
@@ -636,7 +659,8 @@ function QuestionForm({ question, onSubmit, onCancel }) {
             type="submit"
             className="bg-green-500 hover:bg-green-600"
             disabled={
-              !questionText.trim() || !options.every((opt) => opt.trim())
+              !watch("questionText").trim() ||
+              !watchedOptions.every((opt) => opt.trim())
             }
           >
             <Save className="w-4 h-4 ml-2" />
