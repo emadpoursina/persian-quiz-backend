@@ -29,7 +29,11 @@ export default function QuestionsPage() {
   const [editingQuestion, setEditingQuestion] = useState(null);
 
   // Use the useQuiz hook to fetch quiz data
-  const { data: quiz, isLoading, error } = useQuiz.getQuiz(quizId);
+  const {
+    data: quiz,
+    isLoading: isQuizLoading,
+    error: quizError,
+  } = useQuiz.getQuiz(quizId);
 
   const saveQuiz = (updatedQuiz) => {
     console.log("Saving quiz data:", updatedQuiz);
@@ -87,11 +91,7 @@ export default function QuestionsPage() {
       questions: quiz.questions.filter((q) => q.id !== questionId),
     };
 
-    console.log("Deleting question:", questionId);
-    console.log("Updated quiz:", updatedQuiz);
-  };
-
-  if (isLoading) {
+  if (isQuizLoading) {
     return (
       <div className="p-6">
         <div className="text-center">
@@ -101,11 +101,13 @@ export default function QuestionsPage() {
     );
   }
 
-  if (error) {
+  if (quizError) {
     return (
       <div className="p-6">
         <div className="text-center">
-          <p className="text-red-500">خطا در بارگذاری آزمون: {error.message}</p>
+          <p className="text-red-500">
+            خطا در بارگذاری آزمون: {quizError.message}
+          </p>
         </div>
       </div>
     );
