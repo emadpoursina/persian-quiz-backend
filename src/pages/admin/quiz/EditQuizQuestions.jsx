@@ -439,6 +439,7 @@ function QuestionForm({
       <h3 className="font-medium text-blue-800 mb-4">
         {question ? "ویرایش سوال" : "افزودن سوال جدید"}
       </h3>
+      {/* Form Section */}
       <form
         onSubmit={handleSubmit((data) => {
           // Remove HTML tags for validation
@@ -455,6 +456,7 @@ function QuestionForm({
         })}
         className="space-y-4"
       >
+        {/* Question text sectjion */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             متن سوال *
@@ -649,6 +651,7 @@ function QuestionForm({
           )}
         </div>
 
+        {/* Question options */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             گزینه‌ها *
@@ -687,6 +690,7 @@ function QuestionForm({
           </div>
         </div>
 
+        {/* Form submit button */}
         <div className="flex gap-3 pt-4">
           {error && <p>خطا در ذخیره سازی سوالات: {error.message}</p>}
           <Button
