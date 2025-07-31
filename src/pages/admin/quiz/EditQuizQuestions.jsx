@@ -46,6 +46,10 @@ export default function QuestionsPage() {
     isSuccess: isQuestionsSuccess,
   } = useQuiz.setQuestions(quizId);
 
+  useEffect(() => {
+    if (quiz) setQuestions(quiz.questions);
+  }, [quiz]);
+
   // Event Handlers
   const deleteQuestion = (questionId) => {
     if (!confirm("آیا از حذف این سوال اطمینان دارید؟")) return;
@@ -77,6 +81,11 @@ export default function QuestionsPage() {
       newQuestions,
       newQuestion.attachmentUrl.indexOf("data") === 0
     );
+  };
+
+  const handleEditQuestion = () => {
+    console.log(editQuestion);
+    
   };
 
   // Quiz loading and error handling
@@ -189,17 +198,11 @@ export default function QuestionsPage() {
             {editingQuestion && (
               <QuestionForm
                 question={editingQuestion}
-                onFormSubmit={(formData) => {
-                  onQuestionsChange(
-                    "edit",
-                    formData.questionId,
-                    formData.questionText,
-                    formData.questionsOptions,
-                    formData.questionCorrectAnswerIdex,
-                    formData.questionMedia
-                  );
-                }}
+                onFormSubmit={handleEditQuestion}
                 onCancel={() => setEditingQuestion(null)}
+                isLoading={isQuestionsPending}
+                error={questionsError}
+                isSuccess={isQuestionsSuccess}
               />
             )}
 
@@ -224,7 +227,7 @@ export default function QuestionsPage() {
             ) : (
               quiz.questions.map((question, index) => (
                 <div
-                  key={question.id}
+                  key={question._id}
                   className="border rounded-lg p-4 hover:bg-gray-50"
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -234,7 +237,7 @@ export default function QuestionsPage() {
                         <div
                           className="inline"
                           dangerouslySetInnerHTML={{
-                            __html: question.question,
+                            __html: question.questionText,
                           }}
                         />
                       </h4>
@@ -273,16 +276,16 @@ export default function QuestionsPage() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {question.options.map((option, optIndex) => (
                           <div
-                            key={optIndex}
+                            key={option._id}
                             className={`text-sm p-2 rounded border ${
-                              optIndex === question.correct
+                              option.isCorrect
                                 ? "bg-green-50 border-green-200 text-green-800"
                                 : "bg-gray-50 border-gray-200 text-gray-600"
                             }`}
                           >
                             <span className="font-medium">{optIndex + 1}.</span>{" "}
-                            {option}
-                            {optIndex === question.correct && (
+                            {option.text}
+                            {option.isCorrect && (
                               <span className="mr-2 text-green-600">
                                 ✓ پاسخ صحیح
                               </span>
