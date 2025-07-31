@@ -23,14 +23,16 @@ import useQuiz from "@/hooks/useQuiz";
 import { queryOptions } from "@tanstack/react-query";
 
 export default function QuestionsPage() {
+  // Constants
   const navigate = useNavigate();
   const { id: quizId } = useParams();
 
+  // States
   const [isAdding, setIsAdding] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [questions, setQuestions] = useState([]);
 
-  // Use the useQuiz hook to fetch quiz data
+  // Hooks
   const {
     data: quiz,
     isLoading: isQuizLoading,
@@ -43,6 +45,7 @@ export default function QuestionsPage() {
     error: questionsError,
   } = useQuiz.setQuestions(quizId);
 
+  // Event Handlers
   const deleteQuestion = (questionId) => {
     if (!confirm("آیا از حذف این سوال اطمینان دارید؟")) return;
   };
@@ -75,6 +78,7 @@ export default function QuestionsPage() {
     );
   };
 
+  // Quiz loading and error handling
   if (isQuizLoading) {
     return (
       <div className="p-6">
@@ -169,6 +173,7 @@ export default function QuestionsPage() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Add Question From */}
             {isAdding && (
               <QuestionForm
                 onFormSubmit={handleAddQuestion}
@@ -178,6 +183,7 @@ export default function QuestionsPage() {
               />
             )}
 
+            {/* Edit Question From */}
             {editingQuestion && (
               <QuestionForm
                 question={editingQuestion}
@@ -195,6 +201,7 @@ export default function QuestionsPage() {
               />
             )}
 
+            {/* Show Question List */}
             {quiz.questions.length === 0 ? (
               <div className="text-center py-12">
                 <FileQuestion className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -311,7 +318,7 @@ export default function QuestionsPage() {
   );
 }
 
-// Question Form Component
+// Question Form Component for adding and editing questions
 function QuestionForm({ question, onFormSubmit, onCancel, isLoading, error }) {
   const {
     register,
@@ -663,7 +670,6 @@ function QuestionForm({ question, onFormSubmit, onCancel, isLoading, error }) {
             }
           >
             <Save className="w-4 h-4 ml-2" />
-            {console.log(isLoading)}
             {isLoading
               ? "درحال ذخیره سوالات"
               : question
