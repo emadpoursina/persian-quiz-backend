@@ -43,6 +43,7 @@ export default function QuestionsPage() {
     mutateAsync: editQuestions,
     isPending: isQuestionsPending,
     error: questionsError,
+    isSuccess: isQuestionsSuccess,
   } = useQuiz.setQuestions(quizId);
 
   // Event Handlers
@@ -180,6 +181,7 @@ export default function QuestionsPage() {
                 onCancel={() => setIsAdding(false)}
                 isLoading={isQuestionsPending}
                 error={questionsError}
+                isSuccess={isQuestionsSuccess}
               />
             )}
 
@@ -319,7 +321,14 @@ export default function QuestionsPage() {
 }
 
 // Question Form Component for adding and editing questions
-function QuestionForm({ question, onFormSubmit, onCancel, isLoading, error }) {
+function QuestionForm({
+  question,
+  onFormSubmit,
+  onCancel,
+  isLoading,
+  error,
+  isSuccess,
+}) {
   const {
     register,
     handleSubmit,
@@ -345,6 +354,23 @@ function QuestionForm({ question, onFormSubmit, onCancel, isLoading, error }) {
   const watchedOptions = watch("options");
   const watchedCorrect = watch("correct");
   const watchedMedia = watch("media");
+
+  // Reset form after successful submission
+  useEffect(() => {
+    if (isSuccess && !question) {
+      reset({
+        questionText: "",
+        options: ["", "", "", ""],
+        correct: 0,
+        media: null,
+      });
+      setShowImageInput(false);
+      setShowVideoInput(false);
+      setImageUrl("");
+      setImageAlt("");
+      setVideoUrl("");
+    }
+  }, [isSuccess, question, reset]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
