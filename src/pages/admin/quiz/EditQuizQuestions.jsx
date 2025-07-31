@@ -20,6 +20,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import useQuiz from "@/hooks/useQuiz";
+import { queryOptions } from "@tanstack/react-query";
 
 export default function QuestionsPage() {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function QuestionsPage() {
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [questions, setQuestions] = useState([]);
 
   // Use the useQuiz hook to fetch quiz data
   const {
@@ -35,61 +37,43 @@ export default function QuestionsPage() {
     error: quizError,
   } = useQuiz.getQuiz(quizId);
 
-  const saveQuiz = (updatedQuiz) => {
-    console.log("Saving quiz data:", updatedQuiz);
-    // In demo state - just log the data
-  };
-
-  const addQuestion = (question, options, correct, media) => {
-    if (!quiz) return;
-
-    const newQuestion = {
-      id: Date.now().toString(),
-      question,
-      options,
-      correct,
-      media,
-    };
-
-    const updatedQuiz = {
-      ...quiz,
-      questions: [...quiz.questions, newQuestion],
-    };
-
-    console.log("Adding question:", newQuestion);
-    console.log("Updated quiz:", updatedQuiz);
-    setIsAdding(false);
-  };
-
-  const updateQuestion = (questionId, question, options, correct, media) => {
-    if (!quiz) return;
-
-    const updatedQuiz = {
-      ...quiz,
-      questions: quiz.questions.map((q) =>
-        q.id === questionId ? { ...q, question, options, correct, media } : q
-      ),
-    };
-
-    console.log("Updating question:", {
-      questionId,
-      question,
-      options,
-      correct,
-      media,
-    });
-    console.log("Updated quiz:", updatedQuiz);
-    setEditingQuestion(null);
-  };
+  const {
+    mutateAsync: editQuestions,
+    isPending: isQuestionsPending,
+    error: questionsError,
+  } = useQuiz.setQuestions(quizId);
 
   const deleteQuestion = (questionId) => {
-    if (!quiz) return;
     if (!confirm("آیا از حذف این سوال اطمینان دارید؟")) return;
+  };
 
-    const updatedQuiz = {
-      ...quiz,
-      questions: quiz.questions.filter((q) => q.id !== questionId),
+  const handleAddQuestion = ({
+    questionId,
+    questionText,
+    questionsOptions,
+    questionCorrectAnswerIdex,
+    questionMedia,
+  }) => {
+    const options = questionsOptions.map((q, idx) => {
+      return {
+        text: q,
+        isCorrect: idx === questionCorrectAnswerIdex,
+      };
+    });
+    const newQuestion = {
+      questionText,
+      options,
+      attachmentUrl: questionMedia?.url || "",
+      attachmentAlt: questionMedia?.alt || "",
     };
+    // Adding new Question
+    const newQuestions = [...questions, newQuestion];
+    setQuestions(newQuestions);
+    editQuestions(
+      newQuestions,
+      newQuestion.attachmentUrl.indexOf("data") === 0
+    );
+  };
 
   if (isQuizLoading) {
     return (
@@ -187,17 +171,26 @@ export default function QuestionsPage() {
           <CardContent className="space-y-4">
             {isAdding && (
               <QuestionForm
-                onSubmit={addQuestion}
+                onFormSubmit={handleAddQuestion}
                 onCancel={() => setIsAdding(false)}
+                isLoading={isQuestionsPending}
+                error={questionsError}
               />
             )}
 
             {editingQuestion && (
               <QuestionForm
                 question={editingQuestion}
-                onSubmit={(q, o, c, m) =>
-                  updateQuestion(editingQuestion.id, q, o, c, m)
-                }
+                onFormSubmit={(formData) => {
+                  onQuestionsChange(
+                    "edit",
+                    formData.questionId,
+                    formData.questionText,
+                    formData.questionsOptions,
+                    formData.questionCorrectAnswerIdex,
+                    formData.questionMedia
+                  );
+                }}
                 onCancel={() => setEditingQuestion(null)}
               />
             )}
@@ -319,7 +312,7 @@ export default function QuestionsPage() {
 }
 
 // Question Form Component
-function QuestionForm({ question, onSubmit, onCancel }) {
+function QuestionForm({ question, onFormSubmit, onCancel, isLoading, error }) {
   const {
     register,
     handleSubmit,
@@ -405,25 +398,27 @@ function QuestionForm({ question, onSubmit, onCancel }) {
     setValue("media", null);
   };
 
-  const onSubmit = (data) => {
-    // Remove HTML tags for validation
-    const plainText = data.questionText.replace(/<[^>]*>/g, "").trim();
-    if (plainText && data.options.every((opt) => opt.trim())) {
-      onSubmit(
-        data.questionText.trim(),
-        data.options.map((opt) => opt.trim()),
-        data.correct,
-        data.media
-      );
-    }
-  };
-
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
       <h3 className="font-medium text-blue-800 mb-4">
         {question ? "ویرایش سوال" : "افزودن سوال جدید"}
       </h3>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        onSubmit={handleSubmit((data) => {
+          // Remove HTML tags for validation
+          const plainText = data.questionText.replace(/<[^>]*>/g, "").trim();
+          if (plainText && data.options.every((opt) => opt.trim())) {
+            onFormSubmit({
+              questionId: question?._id || "",
+              questionText: data.questionText.trim(),
+              questionsOptions: data.options.map((opt) => opt.trim()),
+              questionCorrectAnswerIdex: data.correct,
+              questionMedia: data?.media || "",
+            });
+          }
+        })}
+        className="space-y-4"
+      >
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             متن سوال *
@@ -657,16 +652,23 @@ function QuestionForm({ question, onSubmit, onCancel }) {
         </div>
 
         <div className="flex gap-3 pt-4">
+          {error && <p>خطا در ذخیره سازی سوالات: {error.message}</p>}
           <Button
             type="submit"
             className="bg-green-500 hover:bg-green-600"
             disabled={
+              isLoading ||
               !watch("questionText").trim() ||
               !watchedOptions.every((opt) => opt.trim())
             }
           >
             <Save className="w-4 h-4 ml-2" />
-            {question ? "ذخیره تغییرات" : "افزودن سوال"}
+            {console.log(isLoading)}
+            {isLoading
+              ? "درحال ذخیره سوالات"
+              : question
+              ? "ذخیره تغییرات"
+              : "افزودن سوال"}
           </Button>
           <Button type="button" variant="outline" onClick={onCancel}>
             <X className="w-4 h-4 ml-2" />
