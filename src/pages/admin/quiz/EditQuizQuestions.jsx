@@ -288,14 +288,16 @@ export default function QuestionsPage() {
                       </h4>
 
                       {/* Media Preview */}
-                      {question.media && (
+                      {question.attachmentUrl && (
                         <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
-                          {question.media.type === "image" ? (
+                          {question.attachmentType === "image" ? (
                             <div className="flex items-center gap-3">
                               <ImageIcon className="w-5 h-5 text-blue-600" />
                               <img
-                                src={question.media.url || "/placeholder.svg"}
-                                alt={question.media.alt || "تصویر سوال"}
+                                src={
+                                  question.attachmentUrl || "/placeholder.svg"
+                                }
+                                alt={question.attachmentAlt || "تصویر سوال"}
                                 className="max-w-32 h-20 object-cover rounded border"
                               />
                               <span className="text-sm text-gray-600">
@@ -310,7 +312,7 @@ export default function QuestionsPage() {
                                   ویدیو سوال
                                 </p>
                                 <p className="text-xs text-gray-500 truncate">
-                                  {question.media.url}
+                                  {question.attachmentUrl}
                                 </p>
                               </div>
                             </div>
