@@ -22,4 +22,11 @@ router.post(
   quizController.addQuestion
 );
 
+router.put(
+  "/:id/questions/:questionId",
+  questionUpload.single("attachmentUrl"),
+  handleMulterError,
+  quizController.updateQuestion
+);
+
 export default router;
