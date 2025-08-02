@@ -1,4 +1,8 @@
 import express from "express";
+import {
+  questionUpload,
+  handleMulterError,
+} from "../../http/middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -11,6 +15,11 @@ router.post("/add", quizController.addQuiz);
 router.get("/:id", quizController.getQuiz);
 
 // Question Routes
-router.post("/:id/questions/add", quizController.addQuestion);
+router.post(
+  "/:id/questions/add",
+  questionUpload.single("attachmentUrl"),
+  handleMulterError,
+  quizController.addQuestion
+);
 
 export default router;

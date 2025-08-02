@@ -31,8 +31,14 @@ const quizController = {
       const question = req.body;
 
       // Validate input
-      if (!question || typeof question !== "object" || Array.isArray(question)) {
-        return res.status(400).json({ error: "A question object is required." });
+      if (
+        !question ||
+        typeof question !== "object" ||
+        Array.isArray(question)
+      ) {
+        return res
+          .status(400)
+          .json({ error: "A question object is required." });
       }
 
       // Find the quiz
@@ -59,9 +65,7 @@ const quizController = {
 
       await quiz.save();
 
-      res
-        .status(200)
-        .json({ message: "Question added successfully.", quiz });
+      res.status(200).json({ message: "Question added successfully.", quiz });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
