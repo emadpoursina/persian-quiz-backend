@@ -45,6 +45,13 @@ export default function QuestionsPage() {
     isSuccess: isAddSuccess,
   } = useQuiz.addQuestion(quizId);
 
+  const {
+    mutateAsync: updateQuestion,
+    isPending: isUpdatePending,
+    error: updateError,
+    isSuccess: isUpdateSuccess,
+  } = useQuiz.updateQuestion(quizId);
+
   useEffect(() => {
     if (quiz) {
       setQuestionList(quiz.questions);
@@ -106,21 +113,21 @@ export default function QuestionsPage() {
       _id: questionId,
       questionText,
       options,
-      attachmentUrl: questionMedia?.url || "",
+      attachmentUrl:
+        questionMedia && questionMedia.url.indexOf("data") === 0
+          ? questionMedia.file
+          : questionMedia?.url || "",
       attachmentAlt: questionMedia?.alt || "",
-      attachmentType: questionMedia?.type || "",
+      attachmentType: questionMedia?.type || "none",
     };
 
-    // Editing Question
-    const newQuestions = questionList.map((q) =>
-      q._id === questionId ? editedQuestion : q
+    setQuestionList(
+      questionList.map((q) => (q._id === questionId ? editedQuestion : q))
     );
-
-    setQuestionList(newQuestions);
     setEditingQuestion(editedQuestion);
-    addQuestion({
-      questions: newQuestions,
-      isFile: editedQuestion.attachmentUrl.indexOf("data") === 0,
+    updateQuestion({
+      question: editedQuestion,
+      isFile: typeof editedQuestion.attachmentUrl === "object",
     });
   };
 
@@ -237,9 +244,9 @@ export default function QuestionsPage() {
                 question={editingQuestion}
                 onFormSubmit={handleEditQuestion}
                 onCancel={() => setEditingQuestion(null)}
-                isLoading={isAddPending}
-                error={addError}
-                isSuccess={isAddSuccess}
+                isLoading={isUpdatePending}
+                error={updateError}
+                isSuccess={isUpdateSuccess}
                 type="edit"
               />
             )}

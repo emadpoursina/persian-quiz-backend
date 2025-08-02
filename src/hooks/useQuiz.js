@@ -122,6 +122,73 @@ const useQuiz = {
       },
     });
   },
+
+  updateQuestion(quizId) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: async ({ question, isFile }) => {
+        let contentType = "";
+        let requestBody = null;
+
+        if (isFile) {
+          contentType = "multipart/form-data";
+          requestBody = new FormData();
+
+          // Append question fields
+          requestBody.append("_id", question._id);
+          requestBody.append("questionText", question.questionText);
+          requestBody.append("attachmentType", question.attachmentType);
+          requestBody.append("attachmentUrl", question.attachmentUrl);
+          requestBody.append("attachmentAlt", question.attachmentAlt);
+
+          question.options.forEach((opt, idx) => {
+            requestBody.append(`options[${idx}][text]`, opt.text);
+            requestBody.append(`options[${idx}][isCorrect]`, opt.isCorrect);
+          });
+        } else {
+          contentType = "application/json";
+          requestBody = {
+            questionText: question.questionText,
+            options: question.options.map((opt) => ({
+              text: opt.text,
+              isCorrect: !!opt.isCorrect,
+            })),
+            attachmentUrl: question.attachmentUrl,
+            attachmentAlt: question.attachmentAlt,
+            attachmentType: question.attachmentType,
+          };
+        }
+
+        const response = await apiClient.put(
+          `/quiz/${quizId}/questions/${question._id}`,
+          requestBody,
+          {
+            headers: {
+              "Content-Type": contentType,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            response.data?.message || "خطا در بروزرسانی سوال آزمون"
+          );
+        }
+
+        return response.data;
+      },
+      onSuccess: () => {
+        // Invalidate the quiz questions cache if needed
+        queryClient.invalidateQueries({ queryKey: ["quiz", quizId] });
+        toast.success("سوال آزمون بروزرسانی شد.");
+      },
+      onError: (error) => {
+        toast.error("خطا در بروزرسانی سوال آزمون");
+        console.error("Error updating question:", error);
+      },
+    });
+  },
 };
 
 export default useQuiz;
