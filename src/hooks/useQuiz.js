@@ -59,7 +59,7 @@ const useQuiz = {
     });
   },
 
-  setQuestions(quizId) {
+  setQuestions(quizId, onSuccessSet) {
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -119,6 +119,7 @@ const useQuiz = {
         // Invalidate the quiz questions cache if needed
         queryClient.invalidateQueries({ queryKey: ["quiz", quizId] });
         toast.success("سوالات آزمون بروزرسانی شد.");
+        onSuccessSet();
       },
       onError: (error) => {
         toast.error("خطا در ذخیره سوالات آزمون");
