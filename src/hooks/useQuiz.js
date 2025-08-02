@@ -96,6 +96,8 @@ const useQuiz = {
               isCorrect: !!opt.isCorrect,
             })),
             attachmentUrl: q.attachmentUrl,
+            attachmentAlt: q.attachmentAlt,
+            attachmentType: q.attachmentType,
           }));
         }
 
