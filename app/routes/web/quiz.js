@@ -11,6 +11,6 @@ router.post("/add", quizController.addQuiz);
 router.get("/:id", quizController.getQuiz);
 
 // Question Routes
-router.post("/:id/questions", quizController.setQuestions);
+router.post("/:id/questions/add", quizController.addQuestion);
 
 export default router;

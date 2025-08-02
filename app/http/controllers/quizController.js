@@ -25,14 +25,14 @@ const quizController = {
     }
   },
 
-  async setQuestions(req, res) {
+  async addQuestion(req, res) {
     try {
       const quizId = req.params.id;
-      const questions = req.body;
+      const question = req.body;
 
       // Validate input
-      if (!Array.isArray(questions) || questions.length === 0) {
-        return res.status(400).json({ error: "Questions array is required." });
+      if (!question || typeof question !== "object" || Array.isArray(question)) {
+        return res.status(400).json({ error: "A question object is required." });
       }
 
       // Find the quiz
@@ -41,32 +41,27 @@ const quizController = {
         return res.status(404).json({ error: "Quiz not found." });
       }
 
-      // For each question, handle attachmentUrl (either a single file or a single url)
-      const processedQuestions = questions.map((q) => {
-        let { attachmentUrl, ...rest } = q;
-        // Handle attachment - either uploaded file or URL
-        let finalAttachmentUrl = attachmentUrl || "";
+      // Handle attachmentUrl (either a single file or a single url)
+      let { attachmentUrl, ...rest } = question;
+      let finalAttachmentUrl = attachmentUrl || "";
 
-        // If file was uploaded, use the file path
-        if (req.file) {
-          // Construct the URL for the uploaded file
-          const baseUrl = `${req.protocol}://${req.get("host")}`;
-          finalAttachmentUrl = `${baseUrl}/upload/question/${req.file.filename}`;
-        }
+      // If file was uploaded, use the file path
+      if (req.file) {
+        const baseUrl = `${req.protocol}://${req.get("host")}`;
+        finalAttachmentUrl = `${baseUrl}/upload/question/${req.file.filename}`;
+      }
 
-        return {
-          ...rest,
-          attachmentUrl: finalAttachmentUrl,
-        };
+      // Add the new question to the quiz's questions array
+      quiz.questions.push({
+        ...rest,
+        attachmentUrl: finalAttachmentUrl,
       });
 
-      // Assign processed questions and save
-      quiz.questions = processedQuestions;
       await quiz.save();
 
       res
         .status(200)
-        .json({ message: "Questions updated successfully.", quiz });
+        .json({ message: "Question added successfully.", quiz });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
