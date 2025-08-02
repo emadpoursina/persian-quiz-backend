@@ -59,50 +59,44 @@ const useQuiz = {
     });
   },
 
-  setQuestions(quizId, onSuccessSet) {
+  addQuestion(quizId) {
     const queryClient = useQueryClient();
 
     return useMutation({
-      mutationFn: async (questions, isFile) => {
+      mutationFn: async ({ question, isFile }) => {
         let contentType = "";
         let requestBody = null;
+
         if (isFile) {
           contentType = "multipart/form-data";
           requestBody = new FormData();
-          questions.forEach((q, idx) => {
-            // Append question text and options as JSON string
-            formData.append(`questions[${idx}][questionText]`, q.questionText);
-            formData.append(`questions[${idx}][attachment]`, q.attachmentUrl);
-            q.options.forEach((opt, optionIdx) => {
-              formData.append(
-                `questions[${idx}][options][${optionIdx}][text]`,
-                option.text
-              );
-              formData.append(
-                `questions[${idx}][options][${optionIdx}][isCorrect]`,
-                option.isCorrect
-              );
-            });
+
+          // Append question fields
+          requestBody.append("questionText", question.questionText);
+          requestBody.append("attachmentType", question.attachmentType);
+          requestBody.append("attachmentUrl", question.attachmentUrl);
+          requestBody.append("attachmentAlt", question.attachmentAlt);
+
+          question.options.forEach((opt, idx) => {
+            requestBody.append(`options[${idx}][text]`, opt.text);
+            requestBody.append(`options[${idx}][isCorrect]`, opt.isCorrect);
           });
-          // You may want to use formData in your request body
         } else {
           contentType = "application/json";
-
-          // Transform questions to required format
-          requestBody = questions.map((q) => ({
-            questionText: q.questionText,
-            options: q.options.map((opt, idx) => ({
+          requestBody = {
+            questionText: question.questionText,
+            options: question.options.map((opt) => ({
               text: opt.text,
               isCorrect: !!opt.isCorrect,
             })),
-            attachmentUrl: q.attachmentUrl,
-            attachmentAlt: q.attachmentAlt,
-            attachmentType: q.attachmentType,
-          }));
+            attachmentUrl: question.attachmentUrl,
+            attachmentAlt: question.attachmentAlt,
+            attachmentType: question.attachmentType,
+          };
         }
 
         const response = await apiClient.post(
-          `/quiz/${quizId}/questions`,
+          `/quiz/${quizId}/questions/add`,
           requestBody,
           {
             headers: {
@@ -112,7 +106,7 @@ const useQuiz = {
         );
 
         if (!response.ok) {
-          throw new Error(response.data?.message || "خطا در ثبت سوالات آزمون");
+          throw new Error(response.data?.message || "خطا در ثبت سوال آزمون");
         }
 
         return response.data;
@@ -120,12 +114,11 @@ const useQuiz = {
       onSuccess: () => {
         // Invalidate the quiz questions cache if needed
         queryClient.invalidateQueries({ queryKey: ["quiz", quizId] });
-        toast.success("سوالات آزمون بروزرسانی شد.");
-        onSuccessSet();
+        toast.success("سوال آزمون اضافه شد.");
       },
       onError: (error) => {
-        toast.error("خطا در ذخیره سوالات آزمون");
-        console.error("Error setting questions:", error);
+        toast.error("خطا در ذخیره سوال آزمون");
+        console.error("Error adding question:", error);
       },
     });
   },

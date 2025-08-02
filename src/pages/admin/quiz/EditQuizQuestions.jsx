@@ -39,14 +39,11 @@ export default function QuestionsPage() {
   } = useQuiz.getQuiz(quizId);
 
   const {
-    mutateAsync: editQuestions,
-    isPending: isQuestionsPending,
-    error: questionsError,
-    isSuccess: isQuestionsSuccess,
-  } = useQuiz.setQuestions(quizId, () => {
-    setIsAdding(false);
-    setEditingQuestion(null);
-  });
+    mutateAsync: addQuestion,
+    isPending: isAddPending,
+    error: addError,
+    isSuccess: isAddSuccess,
+  } = useQuiz.addQuestion(quizId);
 
   useEffect(() => {
     if (quiz) {
@@ -76,17 +73,19 @@ export default function QuestionsPage() {
     const newQuestion = {
       questionText,
       options,
-      attachmentUrl: questionMedia?.url || "",
+      attachmentUrl:
+        questionMedia && questionMedia.url.indexOf("data") === 0
+          ? questionMedia.file
+          : questionMedia?.url || "",
       attachmentAlt: questionMedia?.alt || "",
-      attachmentType: questionMedia?.type || "",
+      attachmentType: questionMedia?.type || "none",
     };
     // Adding new Question
-    const newQuestions = [...questionList, newQuestion];
-    setQuestionList(newQuestions);
-    editQuestions(
-      newQuestions,
-      newQuestion.attachmentUrl.indexOf("data") === 0
-    );
+    setQuestionList([...questionList, newQuestion]);
+    addQuestion({
+      question: newQuestion,
+      isFile: typeof newQuestion.attachmentUrl === "object",
+    });
   };
 
   const handleEditQuestion = ({
@@ -119,10 +118,10 @@ export default function QuestionsPage() {
 
     setQuestionList(newQuestions);
     setEditingQuestion(editedQuestion);
-    editQuestions(
-      newQuestions,
-      editedQuestion.attachmentUrl.indexOf("data") === 0
-    );
+    addQuestion({
+      questions: newQuestions,
+      isFile: editedQuestion.attachmentUrl.indexOf("data") === 0,
+    });
   };
 
   // Quiz loading and error handling
@@ -225,9 +224,9 @@ export default function QuestionsPage() {
               <QuestionForm
                 onFormSubmit={handleAddQuestion}
                 onCancel={() => setIsAdding(false)}
-                isLoading={isQuestionsPending}
-                error={questionsError}
-                isSuccess={isQuestionsSuccess}
+                isLoading={isAddPending}
+                error={addError}
+                isSuccess={isAddSuccess}
                 type="add"
               />
             )}
@@ -238,9 +237,9 @@ export default function QuestionsPage() {
                 question={editingQuestion}
                 onFormSubmit={handleEditQuestion}
                 onCancel={() => setEditingQuestion(null)}
-                isLoading={isQuestionsPending}
-                error={questionsError}
-                isSuccess={isQuestionsSuccess}
+                isLoading={isAddPending}
+                error={addError}
+                isSuccess={isAddSuccess}
                 type="edit"
               />
             )}
@@ -435,6 +434,7 @@ function QuestionForm({
         const result = e.target?.result;
         setValue("media", {
           type: "image",
+          file: file,
           url: result,
           alt: imageAlt || file.name,
         });
