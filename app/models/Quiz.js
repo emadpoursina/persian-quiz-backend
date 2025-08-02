@@ -33,8 +33,9 @@ const QuestionSchema = new Schema({
     },
     required: true,
   },
-  attachmentUrl: {type: String, default: ""},
-  attachmentAlt: {type: String, default: ""}
+  attachmentUrl: { type: String, default: "" },
+  attachmentAlt: { type: String, default: "" },
+  attachmentType: { type: String, enum: ["image", "video", "none"], default:"none" },
 });
 
 // Quiz Schema
