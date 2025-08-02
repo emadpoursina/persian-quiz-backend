@@ -20,7 +20,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import useQuiz from "@/hooks/useQuiz";
-import { queryOptions } from "@tanstack/react-query";
 
 export default function QuestionsPage() {
   // Constants
@@ -30,7 +29,7 @@ export default function QuestionsPage() {
   // States
   const [isAdding, setIsAdding] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
-  const [questions, setQuestions] = useState([]);
+  const [questionList, setQuestionList] = useState([]);
 
   // Hooks
   const {
@@ -44,10 +43,15 @@ export default function QuestionsPage() {
     isPending: isQuestionsPending,
     error: questionsError,
     isSuccess: isQuestionsSuccess,
-  } = useQuiz.setQuestions(quizId);
+  } = useQuiz.setQuestions(quizId, () => {
+    setIsAdding(false);
+    setEditingQuestion(null);
+  });
 
   useEffect(() => {
-    if (quiz) setQuestions(quiz.questions);
+    if (quiz) {
+      setQuestionList(quiz.questions);
+    }
   }, [quiz]);
 
   // Event Handlers
@@ -75,17 +79,47 @@ export default function QuestionsPage() {
       attachmentAlt: questionMedia?.alt || "",
     };
     // Adding new Question
-    const newQuestions = [...questions, newQuestion];
-    setQuestions(newQuestions);
+    const newQuestions = [...questionList, newQuestion];
+    setQuestionList(newQuestions);
     editQuestions(
       newQuestions,
       newQuestion.attachmentUrl.indexOf("data") === 0
     );
   };
 
-  const handleEditQuestion = () => {
-    console.log(editQuestion);
-    
+  const handleEditQuestion = ({
+    questionId,
+    questionText,
+    questionsOptions,
+    questionCorrectAnswerIdex,
+    questionMedia,
+  }) => {
+    const options = questionsOptions.map((q, idx) => {
+      return {
+        text: q,
+        isCorrect: idx === questionCorrectAnswerIdex,
+      };
+    });
+
+    const editedQuestion = {
+      _id: questionId,
+      questionText,
+      options,
+      attachmentUrl: questionMedia?.url || "",
+      attachmentAlt: questionMedia?.alt || "",
+    };
+
+    // Editing Question
+    const newQuestions = questionList.map((q) =>
+      q._id === questionId ? editedQuestion : q
+    );
+
+    setQuestionList(newQuestions);
+    setEditingQuestion(editedQuestion);
+    editQuestions(
+      newQuestions,
+      editedQuestion.attachmentUrl.indexOf("data") === 0
+    );
   };
 
   // Quiz loading and error handling
@@ -191,6 +225,7 @@ export default function QuestionsPage() {
                 isLoading={isQuestionsPending}
                 error={questionsError}
                 isSuccess={isQuestionsSuccess}
+                type="add"
               />
             )}
 
@@ -203,6 +238,7 @@ export default function QuestionsPage() {
                 isLoading={isQuestionsPending}
                 error={questionsError}
                 isSuccess={isQuestionsSuccess}
+                type="edit"
               />
             )}
 
@@ -298,7 +334,9 @@ export default function QuestionsPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setEditingQuestion(question)}
+                        onClick={() => {
+                          setEditingQuestion(question);
+                        }}
                         className="text-blue-600 hover:bg-blue-50"
                       >
                         <Edit className="w-4 h-4" />
@@ -331,6 +369,7 @@ function QuestionForm({
   isLoading,
   error,
   isSuccess,
+  type,
 }) {
   const {
     register,
@@ -354,6 +393,7 @@ function QuestionForm({
   const [imageAlt, setImageAlt] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
 
+  const watchedQuestionText = watch("questionText");
   const watchedOptions = watch("options");
   const watchedCorrect = watch("correct");
   const watchedMedia = watch("media");
@@ -362,6 +402,7 @@ function QuestionForm({
   useEffect(() => {
     if (isSuccess && !question) {
       reset({
+        _id: "",
         questionText: "",
         options: ["", "", "", ""],
         correct: 0,
@@ -372,6 +413,14 @@ function QuestionForm({
       setImageUrl("");
       setImageAlt("");
       setVideoUrl("");
+    } else if (question) {
+      reset({
+        _id: question._id,
+        questionText: question.questionText,
+        options: question.options.map((opt) => opt.text),
+        correct: question.options.findIndex((opt) => opt.isCorrect),
+        media: question.media,
+      });
     }
   }, [isSuccess, question, reset]);
 
@@ -461,12 +510,14 @@ function QuestionForm({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             متن سوال *
           </label>
-          <TinyMCEEditor
-            value={watch("questionText")}
-            onChange={(value) => setValue("questionText", value)}
-            placeholder="متن سوال را وارد کنید..."
-            className="bg-white"
-          />
+          {(watchedQuestionText || type === "add") && (
+            <TinyMCEEditor
+              value={watchedQuestionText}
+              onChange={(value) => setValue("questionText", value)}
+              placeholder="متن سوال را وارد کنید..."
+              className="bg-white"
+            />
+          )}
           <p className="text-xs text-gray-500 mt-1">
             از ابزارهای ویرایشگر برای قالب‌بندی سوال استفاده کنید
           </p>
