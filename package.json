@@ -24,6 +24,7 @@
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "mongoose": "^8.16.5",
-    "mongoose-paginate-v2": "^1.9.1"
+    "mongoose-paginate-v2": "^1.9.1",
+    "multer": "^2.0.2"
   }
 }
