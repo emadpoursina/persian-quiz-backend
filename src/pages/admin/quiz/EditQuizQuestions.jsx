@@ -72,11 +72,13 @@ export default function QuestionsPage() {
         isCorrect: idx === questionCorrectAnswerIdex,
       };
     });
+
     const newQuestion = {
       questionText,
       options,
       attachmentUrl: questionMedia?.url || "",
       attachmentAlt: questionMedia?.alt || "",
+      attachmentType: questionMedia?.type || "",
     };
     // Adding new Question
     const newQuestions = [...questionList, newQuestion];
@@ -107,6 +109,7 @@ export default function QuestionsPage() {
       options,
       attachmentUrl: questionMedia?.url || "",
       attachmentAlt: questionMedia?.alt || "",
+      attachmentType: questionMedia?.type || "",
     };
 
     // Editing Question
@@ -459,16 +462,6 @@ function QuestionForm({
   const handleVideoUrl = () => {
     if (videoUrl.trim()) {
       let embedUrl = videoUrl.trim();
-
-      // Convert YouTube URLs to embed format
-      if (embedUrl.includes("youtube.com/watch?v=")) {
-        embedUrl = embedUrl.replace(
-          "youtube.com/watch?v=",
-          "youtube.com/embed/"
-        );
-      } else if (embedUrl.includes("youtu.be/")) {
-        embedUrl = embedUrl.replace("youtu.be/", "youtube.com/embed/");
-      }
 
       setValue("media", {
         type: "video",
