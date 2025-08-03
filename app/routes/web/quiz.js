@@ -11,6 +11,9 @@ import quizController from "../../http/controllers/quizController.js";
 // Add new Quiz
 router.post("/add", quizController.addQuiz);
 
+// Get all Quizzes
+router.get("/", quizController.getAllQuizzes);
+
 // Get a single Quiz
 router.get("/:id", quizController.getQuiz);
 

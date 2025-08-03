@@ -15,6 +15,15 @@ const quizController = {
     }
   },
 
+  async getAllQuizzes(req, res) {
+    try {
+      const quizzes = await Quiz.find();
+      res.status(200).json(quizzes);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+
   async getQuiz(req, res) {
     try {
       const quiz = await Quiz.findById(req.params.id);
