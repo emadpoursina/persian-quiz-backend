@@ -214,6 +214,19 @@ const useQuiz = {
       },
     });
   },
+
+  getQuizStudents(quizId) {
+    return useQuery({
+      queryKey: ["quiz", quizId, "students"],
+      queryFn: async () => {
+        const response = await apiClient.get(`/quiz/${quizId}/students`);
+        if (!response.ok) {
+          throw new Error(response.data?.message || "خطا در دریافت دانش‌آموزان آزمون");
+        }
+        return response.data;
+      }
+    });
+  },
 };
 
 export default useQuiz;
