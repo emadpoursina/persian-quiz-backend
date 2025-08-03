@@ -79,9 +79,21 @@ export default function QuizStudentsPage() {
   const averageAnswers =
     students?.length > 0
       ? Math.round(
-          students.reduce((sum, student) => sum + student.answers.length, 0) /
-            students.length
+          students.reduce((sum, student) => {
+            const total = student.answers.length;
+            const correct = student.answers.filter(Boolean).length;
+            const score = total > 0 ? (correct / total) * 100 : 0;
+            return sum + score;
+          }, 0) / students.length
         )
+      : 0;
+  const highestScore =
+    students?.length > 0
+      ? Math.max(...students.map((student) => student.answers.length))
+      : 0;
+  const lowestScore =
+    students?.length > 0
+      ? Math.min(...students.map((student) => student.answers.length))
       : 0;
 
   return (
@@ -100,7 +112,7 @@ export default function QuizStudentsPage() {
 
       <div className="grid gap-4 sm:gap-6">
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <Card className="bg-white shadow-sm border border-gray-200">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
@@ -122,14 +134,14 @@ export default function QuizStudentsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-gray-600">
-                    میانگین پاسخ‌ها
+                    میانگین نمرات
                   </p>
                   <p className="text-xl sm:text-2xl font-bold text-green-600">
-                    {averageAnswers}
+                    {averageAnswers}%
                   </p>
                 </div>
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-sm">?</span>
+                  <span className="text-green-600 font-bold text-sm">%</span>
                 </div>
               </div>
             </CardContent>
@@ -140,14 +152,32 @@ export default function QuizStudentsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-gray-600">
-                    آزمون ID
+                    بالاترین نمره
                   </p>
                   <p className="text-xl sm:text-2xl font-bold text-purple-600">
-                    {quizId}
+                    {highestScore}
                   </p>
                 </div>
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <span className="text-purple-600 font-bold text-sm">#</span>
+                  <span className="text-purple-600 font-bold text-sm">↑</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-sm border border-gray-200">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                    پایین‌ترین نمره
+                  </p>
+                  <p className="text-xl sm:text-2xl font-bold text-orange-600">
+                    {lowestScore}
+                  </p>
+                </div>
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <span className="text-orange-600 font-bold text-sm">↓</span>
                 </div>
               </div>
             </CardContent>
