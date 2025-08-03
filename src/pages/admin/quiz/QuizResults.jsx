@@ -74,33 +74,41 @@ export default function QuizResultsPage() {
       : 0;
   const highestScore =
     students?.length > 0
-      ? Math.max(...students.map((student) => student.answers.length))
+      ? Math.max(
+          ...students.map((student) => {
+            return student.answers?.filter(Boolean).length || 0;
+          })
+        )
       : 0;
 
-  // Calculate score distribution
+  // Calculate score distribution based on answers array
   const scoreDistribution = {
     excellent:
-      students?.filter((p) => {
+      students?.filter((student) => {
+        const correctAnswers = student.answers?.filter(Boolean).length || 0;
         const percentage =
-          totalQuestions > 0 ? (p.score / totalQuestions) * 100 : 0;
+          totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
         return percentage >= 80;
       }).length || 0,
     good:
-      students?.filter((p) => {
+      students?.filter((student) => {
+        const correctAnswers = student.answers?.filter(Boolean).length || 0;
         const percentage =
-          totalQuestions > 0 ? (p.score / totalQuestions) * 100 : 0;
+          totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
         return percentage >= 60 && percentage < 80;
       }).length || 0,
     average:
-      students?.filter((p) => {
+      students?.filter((student) => {
+        const correctAnswers = student.answers?.filter(Boolean).length || 0;
         const percentage =
-          totalQuestions > 0 ? (p.score / totalQuestions) * 100 : 0;
+          totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
         return percentage >= 40 && percentage < 60;
       }).length || 0,
     poor:
-      students?.filter((p) => {
+      students?.filter((student) => {
+        const correctAnswers = student.answers?.filter(Boolean).length || 0;
         const percentage =
-          totalQuestions > 0 ? (p.score / totalQuestions) * 100 : 0;
+          totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
         return percentage < 40;
       }).length || 0,
   };
@@ -110,7 +118,7 @@ export default function QuizResultsPage() {
     questions?.map((question, index) => {
       const correctAnswers =
         students?.filter(
-          (p) => p.answers && p.answers[index] === question.correct
+          (student) => student.answers && student.answers[index] === true
         ).length || 0;
       const incorrectAnswers = totalStudents - correctAnswers;
       const successRate =
@@ -120,7 +128,7 @@ export default function QuizResultsPage() {
 
       return {
         questionNumber: index + 1,
-        question: question.questionText || question.question,
+        question: question.questionText,
         correctAnswers,
         incorrectAnswers,
         successRate,
@@ -139,18 +147,21 @@ export default function QuizResultsPage() {
         "تاریخ شرکت",
         ...(questions?.map((_, i) => `سوال ${i + 1}`) || []),
       ],
-      ...students.map((participant) => [
-        participant.userName || participant.name,
-        participant.userMobile || participant.mobile,
-        `${participant.score || 0}/${totalQuestions}`,
-        `${Math.round(((participant.score || 0) / totalQuestions) * 100)}%`,
-        new Date(participant.completedAt || Date.now()).toLocaleDateString(
-          "fa-IR"
-        ),
-        ...(participant.answers?.map((answer, i) =>
-          answer === questions?.[i]?.correct ? "صحیح" : "اشتباه"
-        ) || []),
-      ]),
+      ...students.map((student) => {
+        const correctAnswers = student.answers?.filter(Boolean).length || 0;
+        return [
+          student.userName || student.name,
+          student.userMobile || student.mobile,
+          `${correctAnswers}/${totalQuestions}`,
+          `${Math.round((correctAnswers / totalQuestions) * 100)}%`,
+          new Date(student.completedAt || Date.now()).toLocaleDateString(
+            "fa-IR"
+          ),
+          ...(student.answers?.map((answer) =>
+            answer === true ? "صحیح" : "اشتباه"
+          ) || []),
+        ];
+      }),
     ]
       .map((row) => row.join(","))
       .join("\n");
