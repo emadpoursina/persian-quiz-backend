@@ -35,7 +35,43 @@ const QuestionSchema = new Schema({
   },
   attachmentUrl: { type: String, default: "" },
   attachmentAlt: { type: String, default: "" },
-  attachmentType: { type: String, enum: ["image", "video", "none"], default:"none" },
+  attachmentType: {
+    type: String,
+    enum: ["image", "video", "none"],
+    default: "none",
+  },
+});
+
+// Student Schema (embedded in Quiz)
+const StudentSchema = new Schema({
+  fullName: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  phoneNumber: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  participateDate: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
+  answers: {
+    type: [Boolean],
+    required: true,
+    validate: {
+      validator: function (v) {
+        // This will be validated against the number of questions in the quiz
+        return (
+          Array.isArray(v) && v.every((answer) => typeof answer === "boolean")
+        );
+      },
+      message: "Answers must be an array of booleans",
+    },
+  },
 });
 
 // Quiz Schema
@@ -57,6 +93,10 @@ const quizSchema = new Schema({
   },
   questions: {
     type: [QuestionSchema],
+    default: [],
+  },
+  students: {
+    type: [StudentSchema],
     default: [],
   },
   isActive: {
@@ -146,6 +186,24 @@ const questionValidationSchema = Joi.object({
     "any.invalid": "Each question must have exactly one correct option",
   });
 
+const studentValidationSchema = Joi.object({
+  fullName: Joi.string().trim().required().messages({
+    "string.empty": "Full name cannot be empty",
+    "any.required": "Full name is required",
+  }),
+  phoneNumber: Joi.string().trim().required().messages({
+    "string.empty": "Phone number cannot be empty",
+    "any.required": "Phone number is required",
+  }),
+  participateDate: Joi.date().default(Date.now).messages({
+    "date.base": "Participate date must be a valid date",
+  }),
+  answers: Joi.array().items(Joi.boolean()).required().messages({
+    "array.base": "Answers must be an array",
+    "any.required": "Answers are required",
+  }),
+});
+
 const quizValidationSchema = Joi.object({
   title: Joi.string().trim().required().messages({
     "string.empty": "Title cannot be empty",
@@ -170,6 +228,12 @@ const quizValidationSchema = Joi.object({
       "array.min": "At least one question is required",
       "any.required": "Questions are required",
     }),
+  students: Joi.array()
+    .items(studentValidationSchema)
+    .default([])
+    .messages({
+      "array.base": "Students must be an array",
+    }),
   isActive: Joi.boolean().default(false),
   timeLimit: Joi.number().integer().min(0).default(0),
   passingScore: Joi.number().integer().min(0).max(100).default(70),
@@ -188,4 +252,16 @@ function validateOption(option) {
   return optionValidationSchema.validate(option, { abortEarly: false });
 }
 
-export { Quiz, validateQuiz, validateQuestion, validateOption };
+function validateStudent(student) {
+  return studentValidationSchema.validate(student, {
+    abortEarly: false,
+  });
+}
+
+export {
+  Quiz,
+  validateQuiz,
+  validateQuestion,
+  validateOption,
+  validateStudent,
+};
