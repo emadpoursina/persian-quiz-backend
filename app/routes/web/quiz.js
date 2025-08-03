@@ -34,5 +34,6 @@ router.put(
 
 // Student Routes
 router.get("/:id/students", quizController.getStudents);
+router.post("/:id/students", quizController.addStudent);
 
 export default router;

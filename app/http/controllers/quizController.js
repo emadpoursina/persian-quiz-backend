@@ -185,6 +185,46 @@ const quizController = {
       res.status(400).json({ error: err.message });
     }
   },
+
+  async addStudent(req, res) {
+    try {
+      const quizId = req.params.id;
+      const student = req.body;
+
+      // Validate input
+      if (!student || typeof student !== "object") {
+        return res.status(400).json({ error: "A student object is required." });
+      }
+
+      // Find the quiz
+      const quiz = await Quiz.findById(quizId);
+      if (!quiz) {
+        return res.status(404).json({ error: "Quiz not found." });
+      }
+
+      // Validate that the number of answers matches the number of quiz questions
+      if (
+        !Array.isArray(student.answers) ||
+        student.answers.length !== quiz.questions.length
+      ) {
+        return res.status(400).json({
+          error: `Number of answers (${Array.isArray(student.answers) ? student.answers.length : 0}) does not match number of quiz questions (${quiz.questions.length}).`,
+        });
+      }
+
+      // Add the new student to the quiz's students array
+      quiz.students.push({
+        ...student,
+        participateDate: new Date(),
+      });
+
+      await quiz.save();
+
+      res.status(200).json({ message: "Student added successfully.", quiz });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
 };
 
 export default quizController;
