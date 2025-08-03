@@ -241,7 +241,18 @@ export default function QuestionsPage() {
             {/* Edit Question From */}
             {editingQuestion && (
               <QuestionForm
-                question={editingQuestion}
+                question={
+                  editingQuestion.attachmentType === "none"
+                    ? editingQuestion
+                    : {
+                        ...editingQuestion,
+                        media: {
+                          type: editingQuestion.attachmentType,
+                          url: editingQuestion.attachmentUrl,
+                          alt: editingQuestion.attachmentAlt,
+                        },
+                      }
+                }
                 onFormSubmit={handleEditQuestion}
                 onCancel={() => setEditingQuestion(null)}
                 isLoading={isUpdatePending}
