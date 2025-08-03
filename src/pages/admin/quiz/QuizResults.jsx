@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,37 +10,22 @@ import {
   Target,
   Download,
 } from "lucide-react";
+import useQuiz from "@/hooks/useQuiz";
 
 export default function QuizResultsPage() {
   const params = useParams();
   const navigate = useNavigate();
   const quizId = params.id;
 
-  const [quiz, setQuiz] = useState(null);
-  const [results, setResults] = useState([]);
+  // Use the useQuiz hook to fetch quiz data from server
+  const {
+    data: quiz,
+    isLoading: quizLoading,
+    error: quizError,
+  } = useQuiz.getQuiz(quizId);
 
-  useEffect(() => {
-    const savedQuizzes = localStorage.getItem("adminQuizzes");
-    const savedResults = localStorage.getItem("adminResults");
-
-    if (savedQuizzes) {
-      const quizzes = JSON.parse(savedQuizzes);
-      const foundQuiz = quizzes.find((q) => q.id === quizId);
-      if (foundQuiz) {
-        setQuiz(foundQuiz);
-      } else {
-        navigate("/admin/quizzes");
-      }
-    }
-
-    if (savedResults) {
-      const allResults = JSON.parse(savedResults);
-      const quizResults = allResults.filter((r) => r.quizId === quizId);
-      setResults(quizResults);
-    }
-  }, [quizId]);
-
-  if (!quiz) {
+  // Show loading state
+  if (quizLoading) {
     return (
       <div className="p-6">
         <div className="text-center">
@@ -51,52 +35,100 @@ export default function QuizResultsPage() {
     );
   }
 
-  const totalParticipants = results.length;
-  const averageScore =
-    results.length > 0
-      ? results.reduce((sum, r) => sum + r.score, 0) / results.length
-      : 0;
-  const averagePercentage = Math.round(
-    (averageScore / quiz.questions.length) * 100
-  );
+  // Show error state
+  if (quizError) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <p className="text-red-500">خطا در بارگذاری داده‌ها</p>
+          <Button onClick={() => navigate("/admin/quizzes")} className="mt-4">
+            بازگشت به لیست آزمون‌ها
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
+  // If quiz doesn't exist, redirect
+  if (!quiz) {
+    navigate("/admin/quizzes");
+    return null;
+  }
+
+  // Generate statistics from quiz data
+  const { students, questions } = quiz;
+  const totalStudents = students?.length || 0;
+  const totalQuestions = questions?.length || 0;
+
+  // Calculate average score if there are students
+  const averageAnswers =
+    students?.length > 0
+      ? Math.round(
+          students.reduce((sum, student) => {
+            const total = student.answers.length;
+            const correct = student.answers.filter(Boolean).length;
+            const score = total > 0 ? (correct / total) * 100 : 0;
+            return sum + score;
+          }, 0) / students.length
+        )
+      : 0;
+  const highestScore =
+    students?.length > 0
+      ? Math.max(...students.map((student) => student.answers.length))
+      : 0;
+
+  // Calculate score distribution
   const scoreDistribution = {
-    excellent: results.filter(
-      (r) => (r.score / quiz.questions.length) * 100 >= 80
-    ).length,
-    good: results.filter((r) => {
-      const percentage = (r.score / quiz.questions.length) * 100;
-      return percentage >= 60 && percentage < 80;
-    }).length,
-    average: results.filter((r) => {
-      const percentage = (r.score / quiz.questions.length) * 100;
-      return percentage >= 40 && percentage < 60;
-    }).length,
-    poor: results.filter((r) => (r.score / quiz.questions.length) * 100 < 40)
-      .length,
+    excellent:
+      students?.filter((p) => {
+        const percentage =
+          totalQuestions > 0 ? (p.score / totalQuestions) * 100 : 0;
+        return percentage >= 80;
+      }).length || 0,
+    good:
+      students?.filter((p) => {
+        const percentage =
+          totalQuestions > 0 ? (p.score / totalQuestions) * 100 : 0;
+        return percentage >= 60 && percentage < 80;
+      }).length || 0,
+    average:
+      students?.filter((p) => {
+        const percentage =
+          totalQuestions > 0 ? (p.score / totalQuestions) * 100 : 0;
+        return percentage >= 40 && percentage < 60;
+      }).length || 0,
+    poor:
+      students?.filter((p) => {
+        const percentage =
+          totalQuestions > 0 ? (p.score / totalQuestions) * 100 : 0;
+        return percentage < 40;
+      }).length || 0,
   };
 
-  const questionAnalysis = quiz.questions.map((question, index) => {
-    const correctAnswers = results.filter(
-      (r) => r.answers[index] === question.correct
-    ).length;
-    const incorrectAnswers = totalParticipants - correctAnswers;
-    const successRate =
-      totalParticipants > 0
-        ? Math.round((correctAnswers / totalParticipants) * 100)
-        : 0;
+  // Generate question analysis
+  const questionAnalysis =
+    questions?.map((question, index) => {
+      const correctAnswers =
+        students?.filter(
+          (p) => p.answers && p.answers[index] === question.correct
+        ).length || 0;
+      const incorrectAnswers = totalStudents - correctAnswers;
+      const successRate =
+        totalStudents > 0
+          ? Math.round((correctAnswers / totalStudents) * 100)
+          : 0;
 
-    return {
-      questionNumber: index + 1,
-      question: question.question,
-      correctAnswers,
-      incorrectAnswers,
-      successRate,
-    };
-  });
+      return {
+        questionNumber: index + 1,
+        question: question.questionText || question.question,
+        correctAnswers,
+        incorrectAnswers,
+        successRate,
+      };
+    }) || [];
 
   const exportDetailedResults = () => {
-    if (results.length === 0) return;
+    if (!students || students.length === 0) return;
 
     const csvContent = [
       [
@@ -105,17 +137,19 @@ export default function QuizResultsPage() {
         "نمره کل",
         "درصد",
         "تاریخ شرکت",
-        ...quiz.questions.map((_, i) => `سوال ${i + 1}`),
+        ...(questions?.map((_, i) => `سوال ${i + 1}`) || []),
       ],
-      ...results.map((result) => [
-        result.userName,
-        result.userMobile,
-        `${result.score}/${quiz.questions.length}`,
-        `${Math.round((result.score / quiz.questions.length) * 100)}%`,
-        new Date(result.completedAt).toLocaleDateString("fa-IR"),
-        ...result.answers.map((answer, i) =>
-          answer === quiz.questions[i]?.correct ? "صحیح" : "اشتباه"
+      ...students.map((participant) => [
+        participant.userName || participant.name,
+        participant.userMobile || participant.mobile,
+        `${participant.score || 0}/${totalQuestions}`,
+        `${Math.round(((participant.score || 0) / totalQuestions) * 100)}%`,
+        new Date(participant.completedAt || Date.now()).toLocaleDateString(
+          "fa-IR"
         ),
+        ...(participant.answers?.map((answer, i) =>
+          answer === questions?.[i]?.correct ? "صحیح" : "اشتباه"
+        ) || []),
       ]),
     ]
       .map((row) => row.join(","))
@@ -147,7 +181,7 @@ export default function QuizResultsPage() {
         <Button
           onClick={exportDetailedResults}
           variant="outline"
-          disabled={results.length === 0}
+          disabled={students?.length === 0}
           className="text-green-600 hover:bg-green-50"
         >
           <Download className="w-4 h-4 ml-2" />
@@ -166,7 +200,7 @@ export default function QuizResultsPage() {
                     کل شرکت‌کنندگان
                   </p>
                   <p className="text-2xl sm:text-3xl font-bold text-blue-600">
-                    {totalParticipants}
+                    {totalStudents}
                   </p>
                 </div>
                 <Users className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />
@@ -182,7 +216,7 @@ export default function QuizResultsPage() {
                     میانگین نمرات
                   </p>
                   <p className="text-2xl sm:text-3xl font-bold text-green-600">
-                    {averagePercentage}%
+                    {averageAnswers}%
                   </p>
                 </div>
                 <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
@@ -198,14 +232,7 @@ export default function QuizResultsPage() {
                     بالاترین نمره
                   </p>
                   <p className="text-2xl sm:text-3xl font-bold text-purple-600">
-                    {results.length > 0
-                      ? Math.max(
-                          ...results.map((r) =>
-                            Math.round((r.score / quiz.questions.length) * 100)
-                          )
-                        )
-                      : 0}
-                    %
+                    {highestScore}
                   </p>
                 </div>
                 <Target className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
@@ -221,7 +248,7 @@ export default function QuizResultsPage() {
                     تعداد سوالات
                   </p>
                   <p className="text-2xl sm:text-3xl font-bold text-orange-600">
-                    {quiz.questions.length}
+                    {totalQuestions || 0}
                   </p>
                 </div>
                 <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500" />
@@ -239,7 +266,7 @@ export default function QuizResultsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {totalParticipants === 0 ? (
+            {totalStudents === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">
                   هنوز کسی در آزمون شرکت نکرده است
@@ -255,9 +282,11 @@ export default function QuizResultsPage() {
                     عالی (80-100%)
                   </div>
                   <div className="text-xs text-green-600">
-                    {Math.round(
-                      (scoreDistribution.excellent / totalParticipants) * 100
-                    )}
+                    {totalStudents > 0
+                      ? Math.round(
+                          (scoreDistribution.excellent / totalStudents) * 100
+                        )
+                      : 0}
                     % از کل
                   </div>
                 </div>
@@ -269,9 +298,11 @@ export default function QuizResultsPage() {
                     خوب (60-79%)
                   </div>
                   <div className="text-xs text-blue-600">
-                    {Math.round(
-                      (scoreDistribution.good / totalParticipants) * 100
-                    )}
+                    {totalStudents > 0
+                      ? Math.round(
+                          (scoreDistribution.good / totalStudents) * 100
+                        )
+                      : 0}
                     % از کل
                   </div>
                 </div>
@@ -283,9 +314,11 @@ export default function QuizResultsPage() {
                     متوسط (40-59%)
                   </div>
                   <div className="text-xs text-orange-600">
-                    {Math.round(
-                      (scoreDistribution.average / totalParticipants) * 100
-                    )}
+                    {totalStudents > 0
+                      ? Math.round(
+                          (scoreDistribution.average / totalStudents) * 100
+                        )
+                      : 0}
                     % از کل
                   </div>
                 </div>
@@ -297,9 +330,11 @@ export default function QuizResultsPage() {
                     ضعیف (زیر 40%)
                   </div>
                   <div className="text-xs text-red-600">
-                    {Math.round(
-                      (scoreDistribution.poor / totalParticipants) * 100
-                    )}
+                    {totalStudents > 0
+                      ? Math.round(
+                          (scoreDistribution.poor / totalStudents) * 100
+                        )
+                      : 0}
                     % از کل
                   </div>
                 </div>
@@ -317,7 +352,7 @@ export default function QuizResultsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {totalParticipants === 0 ? (
+            {totalStudents === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">
                   پس از شرکت کاربران، تحلیل سوالات در اینجا نمایش داده می‌شود
@@ -325,53 +360,61 @@ export default function QuizResultsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {questionAnalysis.map((analysis) => (
-                  <div
-                    key={analysis.questionNumber}
-                    className="border rounded-lg p-4"
-                  >
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
-                      <h4 className="font-medium text-gray-800 text-sm sm:text-base">
-                        سوال {analysis.questionNumber}:{" "}
-                        {analysis.question.substring(0, 60)}
-                        {analysis.question.length > 60 && "..."}
-                      </h4>
-                      <div
-                        className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
-                          analysis.successRate >= 80
-                            ? "bg-green-100 text-green-800"
-                            : analysis.successRate >= 60
-                            ? "bg-blue-100 text-blue-800"
-                            : analysis.successRate >= 40
-                            ? "bg-orange-100 text-orange-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {analysis.successRate}% موفقیت
+                {questionAnalysis.length > 0 ? (
+                  questionAnalysis.map((analysis) => (
+                    <div
+                      key={analysis.questionNumber}
+                      className="border rounded-lg p-4"
+                    >
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
+                        <h4 className="font-medium text-gray-800 text-sm sm:text-base">
+                          سوال {analysis.questionNumber}:{" "}
+                          {analysis.question.substring(0, 60)}
+                          {analysis.question.length > 60 && "..."}
+                        </h4>
+                        <div
+                          className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                            analysis.successRate >= 80
+                              ? "bg-green-100 text-green-800"
+                              : analysis.successRate >= 60
+                              ? "bg-blue-100 text-blue-800"
+                              : analysis.successRate >= 40
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {analysis.successRate}% موفقیت
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                        <div className="bg-green-50 border border-green-200 rounded p-3 text-center">
+                          <div className="text-lg font-bold text-green-600">
+                            {analysis.correctAnswers}
+                          </div>
+                          <div className="text-green-800">پاسخ صحیح</div>
+                        </div>
+                        <div className="bg-red-50 border border-red-200 rounded p-3 text-center">
+                          <div className="text-lg font-bold text-red-600">
+                            {analysis.incorrectAnswers}
+                          </div>
+                          <div className="text-red-800">پاسخ اشتباه</div>
+                        </div>
+                        <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
+                          <div className="text-lg font-bold text-gray-600">
+                            {totalStudents}
+                          </div>
+                          <div className="text-gray-800">کل شرکت‌کنندگان</div>
+                        </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                      <div className="bg-green-50 border border-green-200 rounded p-3 text-center">
-                        <div className="text-lg font-bold text-green-600">
-                          {analysis.correctAnswers}
-                        </div>
-                        <div className="text-green-800">پاسخ صحیح</div>
-                      </div>
-                      <div className="bg-red-50 border border-red-200 rounded p-3 text-center">
-                        <div className="text-lg font-bold text-red-600">
-                          {analysis.incorrectAnswers}
-                        </div>
-                        <div className="text-red-800">پاسخ اشتباه</div>
-                      </div>
-                      <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
-                        <div className="text-lg font-bold text-gray-600">
-                          {totalParticipants}
-                        </div>
-                        <div className="text-gray-800">کل شرکت‌کنندگان</div>
-                      </div>
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">
+                      هیچ سوالی برای این آزمون یافت نشد
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
             )}
           </CardContent>
