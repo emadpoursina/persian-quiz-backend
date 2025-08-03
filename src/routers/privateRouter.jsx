@@ -8,6 +8,7 @@ import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import AddQuizPage from "@/pages/admin/quiz/AddQuiz";
 import QuizzesPage from "@/pages/admin/quiz/Quizzes";
 import EditQuizQuestionsPage from "@/pages/admin/quiz/EditQuizQuestions";
+import EditQuizStudentPage from "@/pages/admin/quiz/EditQuizStudents";
 import NotFound from "@/pages/404Page";
 
 const PrivateRouter = () => {
@@ -51,6 +52,7 @@ const PrivateRouter = () => {
           path="quizzes/:id/questions"
           element={<EditQuizQuestionsPage />}
         />
+        <Route path="quizzes/:id/students" element={<EditQuizStudentPage />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

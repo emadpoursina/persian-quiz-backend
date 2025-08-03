@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { ArrowRight, Users, Search, Download, Eye } from "lucide-react";
 
 export default function QuizStudentsPage() {
   const params = useParams();
-  const router = useRouter();
+  const navigate = useNavigate();
   const quizId = params.id;
 
   const [quiz, setQuiz] = useState(null);
@@ -25,7 +25,7 @@ export default function QuizStudentsPage() {
       if (foundQuiz) {
         setQuiz(foundQuiz);
       } else {
-        router.push("/admin/quizzes");
+        navigate("/admin/quizzes");
       }
     }
 
@@ -38,7 +38,7 @@ export default function QuizStudentsPage() {
       );
       setResults(sortedResults);
     }
-  }, [quizId, router]);
+  }, [quizId]);
 
   const filteredResults = results.filter(
     (result) =>
@@ -128,7 +128,7 @@ export default function QuizStudentsPage() {
         <SidebarTrigger />
         <Button
           variant="ghost"
-          onClick={() => router.push("/admin/quizzes")}
+          onClick={() => navigate("/admin/quizzes")}
           className="text-gray-600 hover:text-gray-800"
         >
           <ArrowRight className="w-4 h-4 ml-1" />
