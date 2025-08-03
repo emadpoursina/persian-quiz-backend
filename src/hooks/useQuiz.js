@@ -34,6 +34,30 @@ const useQuiz = {
     });
   },
 
+  getAllQuizzes() {
+    return useQuery({
+      queryKey: ["quizzes"],
+      queryFn: async () => {
+        const response = await apiClient.get("/quiz");
+
+        if (!response.ok) {
+          throw new Error(
+            response.data?.message || "خطا در دریافت لیست آزمون‌ها"
+          );
+        }
+
+        return response.data;
+      },
+      onSuccess: (data) => {
+        // Optionally, you can do something on success, like logging
+        console.log("Quizzes fetched successfully:", data);
+      },
+      onError: (error) => {
+        console.error("Error getting quizzes:", error);
+      },
+    });
+  },
+
   getQuiz(id) {
     const queryClient = useQueryClient();
 
