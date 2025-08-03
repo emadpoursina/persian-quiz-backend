@@ -172,6 +172,19 @@ const quizController = {
       res.status(400).json({ error: err.message });
     }
   },
+
+  async getStudents(req, res) {
+    try {
+      const { id } = req.params;
+      const quiz = await Quiz.findById(id).select("students");
+      if (!quiz) {
+        return res.status(404).json({ error: "Quiz not found." });
+      }
+      res.status(200).json(quiz.students);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
 };
 
 export default quizController;

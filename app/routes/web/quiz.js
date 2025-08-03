@@ -32,4 +32,7 @@ router.put(
   quizController.updateQuestion
 );
 
+// Student Routes
+router.get("/:id/students", quizController.getStudents);
+
 export default router;
