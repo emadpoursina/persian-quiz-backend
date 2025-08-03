@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,41 +13,64 @@ import {
   Settings,
   ExternalLink,
   Shield,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
-import { getQuizzes, getResults, deleteQuiz, updateQuiz } from "@/lib/storage";
+import useQuiz from "@/hooks/useQuiz";
 
 export default function QuizzesPage() {
-  const [quizzes, setQuizzes] = useState([]);
-  const [userResults, setUserResults] = useState([]);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = () => {
-    setQuizzes(getQuizzes());
-    setUserResults(getResults());
-  };
+  const { getAllQuizzes } = useQuiz;
+  const { data: quizzes = [], isLoading, error, refetch } = getAllQuizzes();
 
   const handleDeleteQuiz = (quizId) => {
     if (confirm("آیا از حذف این آزمون اطمینان دارید؟")) {
-      deleteQuiz(quizId);
-      loadData();
+      // TODO: Implement delete quiz mutation
+      console.log("Delete quiz:", quizId);
     }
   };
 
   const toggleQuizStatus = (quizId) => {
-    const quiz = quizzes.find((q) => q.id === quizId);
-    if (quiz) {
-      const updatedQuiz = { ...quiz, isActive: !quiz.isActive };
-      updateQuiz(updatedQuiz);
-      loadData();
-    }
+    // TODO: Implement toggle quiz status mutation
+    console.log("Toggle quiz status:", quizId);
   };
 
   const getQuizResults = (quizId) => {
-    return userResults.filter((r) => r.quizId === quizId);
+    // TODO: Implement get quiz results
+    return [];
   };
+
+  if (isLoading) {
+    return (
+      <div className="admin-page">
+        <div className="admin-content">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+              <p className="text-gray-600">در حال بارگذاری آزمون‌ها...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="admin-page">
+        <div className="admin-content">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <AlertCircle className="w-8 h-8 mx-auto mb-4 text-red-600" />
+              <p className="text-red-600 mb-4">خطا در بارگذاری آزمون‌ها</p>
+              <Button onClick={() => refetch()} variant="outline">
+                تلاش مجدد
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-page">
@@ -59,7 +81,7 @@ export default function QuizzesPage() {
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
               مدیریت آزمون‌ها
             </h1>
-            <Link to="/admin/quizzes/create">
+            <Link to="/admin/quizzes/add">
               <Button className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 w-full sm:w-auto">
                 <Plus className="w-4 h-4 ml-2" />
                 آزمون جدید
@@ -83,7 +105,7 @@ export default function QuizzesPage() {
                   <p className="text-gray-600 mb-4">
                     برای شروع، اولین آزمون خود را ایجاد کنید
                   </p>
-                  <Link href="/admin/quizzes/create">
+                  <Link to="/admin/quizzes/create">
                     <Button className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600">
                       <Plus className="w-4 h-4 ml-2" />
                       ایجاد آزمون جدید
@@ -94,13 +116,13 @@ export default function QuizzesPage() {
             </div>
           ) : (
             quizzes.map((quiz) => {
-              const results = getQuizResults(quiz.id);
+              const results = getQuizResults(quiz._id);
               const averageScore =
                 results.length > 0
                   ? Math.round(
                       results.reduce(
                         (sum, r) =>
-                          sum + (r.score / quiz.questions.length) * 100,
+                          sum + (r.score / (quiz.questions?.length || 1)) * 100,
                         0
                       ) / results.length
                     )
@@ -108,7 +130,7 @@ export default function QuizzesPage() {
 
               return (
                 <Card
-                  key={quiz.id}
+                  key={quiz._id}
                   className="admin-card bg-white shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
                 >
                   <CardHeader className="pb-3">
@@ -133,7 +155,7 @@ export default function QuizzesPage() {
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-3">
                           <div className="bg-blue-50 rounded-lg p-2 text-center">
                             <div className="text-lg font-bold text-blue-600">
-                              {quiz.questions.length}
+                              {quiz.questions?.length || 0}
                             </div>
                             <div className="text-xs text-blue-800">سوال</div>
                           </div>
@@ -167,7 +189,7 @@ export default function QuizzesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => toggleQuizStatus(quiz.id)}
+                          onClick={() => toggleQuizStatus(quiz._id)}
                           className={`w-8 h-8 p-0 ${
                             quiz.isActive
                               ? "text-red-600 hover:bg-red-50"
@@ -183,7 +205,7 @@ export default function QuizzesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleDeleteQuiz(quiz.id)}
+                          onClick={() => handleDeleteQuiz(quiz._id)}
                           className="w-8 h-8 p-0 text-red-600 hover:bg-red-50"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -196,7 +218,7 @@ export default function QuizzesPage() {
                     {/* Action Buttons Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                       <Link
-                        href={`/admin/quizzes/${quiz.id}/questions`}
+                        to={`/admin/quizzes/${quiz._id}/questions`}
                         className="w-full"
                       >
                         <Button
@@ -209,7 +231,7 @@ export default function QuizzesPage() {
                         </Button>
                       </Link>
                       <Link
-                        href={`/admin/quizzes/${quiz.id}/students`}
+                        to={`/admin/quizzes/${quiz._id}/students`}
                         className="w-full"
                       >
                         <Button
@@ -222,7 +244,7 @@ export default function QuizzesPage() {
                         </Button>
                       </Link>
                       <Link
-                        href={`/admin/quizzes/${quiz.id}/results`}
+                        to={`/admin/quizzes/${quiz._id}/results`}
                         className="w-full"
                       >
                         <Button
@@ -235,7 +257,7 @@ export default function QuizzesPage() {
                         </Button>
                       </Link>
                       <Link
-                        href={`/admin/quizzes/${quiz.id}/settings`}
+                        to={`/admin/quizzes/${quiz._id}/settings`}
                         className="w-full"
                       >
                         <Button
@@ -248,7 +270,7 @@ export default function QuizzesPage() {
                         </Button>
                       </Link>
                       <Link
-                        href={`/quiz/${quiz.slug}`}
+                        to={`/quiz/${quiz.slug}`}
                         target="_blank"
                         className="w-full"
                       >
@@ -262,7 +284,7 @@ export default function QuizzesPage() {
                         </Button>
                       </Link>
                       <Link
-                        href={`/admin/quizzes/${quiz.id}/permissions`}
+                        to={`/admin/quizzes/${quiz._id}/permissions`}
                         className="w-full"
                       >
                         <Button
