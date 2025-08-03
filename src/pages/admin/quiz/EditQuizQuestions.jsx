@@ -50,7 +50,7 @@ export default function QuestionsPage() {
     isPending: isUpdatePending,
     error: updateError,
     isSuccess: isUpdateSuccess,
-  } = useQuiz.updateQuestion(quizId);
+  } = useQuiz.updateQuestion(quizId, () => setEditingQuestion(null));
 
   useEffect(() => {
     if (quiz) {
@@ -124,7 +124,6 @@ export default function QuestionsPage() {
     setQuestionList(
       questionList.map((q) => (q._id === questionId ? editedQuestion : q))
     );
-    setEditingQuestion(editedQuestion);
     updateQuestion({
       question: editedQuestion,
       isFile: typeof editedQuestion.attachmentUrl === "object",
@@ -299,37 +298,38 @@ export default function QuestionsPage() {
                       </h4>
 
                       {/* Media Preview */}
-                      {question.attachmentUrl && (
-                        <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
-                          {question.attachmentType === "image" ? (
-                            <div className="flex items-center gap-3">
-                              <ImageIcon className="w-5 h-5 text-blue-600" />
-                              <img
-                                src={
-                                  question.attachmentUrl || "/placeholder.svg"
-                                }
-                                alt={question.attachmentAlt || "تصویر سوال"}
-                                className="max-w-32 h-20 object-cover rounded border"
-                              />
-                              <span className="text-sm text-gray-600">
-                                تصویر سوال
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-3">
-                              <Video className="w-5 h-5 text-red-600" />
-                              <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-800">
-                                  ویدیو سوال
-                                </p>
-                                <p className="text-xs text-gray-500 truncate">
-                                  {question.attachmentUrl}
-                                </p>
+                      {question.attachmentUrl &&
+                        question.attachmentType !== "none" && (
+                          <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
+                            {question.attachmentType === "image" ? (
+                              <div className="flex items-center gap-3">
+                                <ImageIcon className="w-5 h-5 text-blue-600" />
+                                <img
+                                  src={
+                                    question.attachmentUrl || "/placeholder.svg"
+                                  }
+                                  alt={question.attachmentAlt || "تصویر سوال"}
+                                  className="max-w-32 h-20 object-cover rounded border"
+                                />
+                                <span className="text-sm text-gray-600">
+                                  تصویر سوال
+                                </span>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                            ) : (
+                              <div className="flex items-center gap-3">
+                                <Video className="w-5 h-5 text-red-600" />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-gray-800">
+                                    ویدیو سوال
+                                  </p>
+                                  <p className="text-xs text-gray-500 truncate">
+                                    {question.attachmentUrl}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {question.options.map((option, optIndex) => (
@@ -436,6 +436,16 @@ function QuestionForm({
       setImageAlt("");
       setVideoUrl("");
     } else if (question) {
+      if (question.attachmentType === "none") {
+        question.media = null;
+      } else {
+        question.media = {
+          type: question.attachmentType,
+          url: question.attachmentUrl,
+          alt: question.attachmentAlt,
+        };
+      }
+
       reset({
         _id: question._id,
         questionText: question.questionText,
@@ -542,7 +552,7 @@ function QuestionForm({
             رسانه (اختیاری)
           </label>
 
-          {watchedMedia ? (
+          {watchedMedia && watchedMedia.type !== "none" ? (
             <div className="p-4 bg-white border border-gray-300 rounded-lg">
               {watchedMedia.type === "image" ? (
                 <div className="flex items-center gap-4">
