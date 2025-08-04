@@ -7,6 +7,7 @@ import AdminLayout from "@/components/Layouts/AdminLayout";
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import AddQuizPage from "@/pages/admin/quiz/AddQuiz";
 import QuizzesPage from "@/pages/admin/quiz/Quizzes";
+import QuizSettingsPage from "@/pages/admin/quiz/EditQuiz";
 import EditQuizQuestionsPage from "@/pages/admin/quiz/EditQuizQuestions";
 import EditQuizStudentPage from "@/pages/admin/quiz/EditQuizStudents";
 import QuizResultsPage from "@/pages/admin/quiz/QuizResults";
@@ -49,6 +50,7 @@ const PrivateRouter = () => {
         <Route path="dashboard" element={<AdminDashboardPage />} />
         <Route path="quizzes" element={<QuizzesPage />} />
         <Route path="quizzes/add" element={<AddQuizPage />} />
+        <Route path="quizzes/:id/settings" element={<QuizSettingsPage />} />
         <Route
           path="quizzes/:id/questions"
           element={<EditQuizQuestionsPage />}
