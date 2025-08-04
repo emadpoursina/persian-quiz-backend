@@ -229,6 +229,67 @@ const useQuiz = {
       },
     });
   },
+
+  updateQuiz(quizId) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: async (quizData) => {
+        const response = await apiClient.put(`/quiz/${quizId}`, quizData);
+
+        if (!response.ok) {
+          throw new Error(response.data?.message || "خطا در بروزرسانی آزمون");
+        }
+
+        return response.data;
+      },
+      onSuccess: (data) => {
+        // Invalidate and refetch the specific quiz
+        queryClient.invalidateQueries({ queryKey: ["quiz", quizId] });
+
+        // Update the quiz in the cache
+        queryClient.setQueryData(["quiz", quizId], data);
+
+        // Also invalidate the quizzes list to ensure consistency
+        queryClient.invalidateQueries({ queryKey: ["quizzes"] });
+
+        toast.success("آزمون با موفقیت بروزرسانی شد");
+      },
+      onError: (error) => {
+        toast.error("خطا در بروزرسانی آزمون");
+        console.error("Error updating quiz:", error);
+      },
+    });
+  },
+
+  deleteQuiz(quizId) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: async () => {
+        const response = await apiClient.delete(`/quiz/${quizId}`);
+
+        if (!response.ok) {
+          throw new Error(response.data?.message || "خطا در حذف آزمون");
+        }
+
+        return response.data;
+      },
+      onSuccess: () => {
+        // Remove the quiz from the cache
+        queryClient.removeQueries({ queryKey: ["quiz", quizId] });
+
+        // Invalidate the quizzes list
+        queryClient.invalidateQueries({ queryKey: ["quizzes"] });
+
+        toast.success("آزمون با موفقیت حذف شد");
+      },
+      onError: (error) => {
+        toast.error("خطا در حذف آزمون");
+        console.error("Error deleting quiz:", error);
+      },
+    });
+  },
 };
 
 export default useQuiz;
