@@ -67,6 +67,28 @@ const quizController = {
     }
   },
 
+  async toggleStatus(req, res) {
+    try {
+      const quizId = req.params.id;
+
+      // Find the quiz by ID
+      const quiz = await Quiz.findById(quizId);
+      if (!quiz) {
+        return res.status(404).json({ error: "Quiz not found" });
+      }
+
+      // Toggle the isActive field
+      quiz.isActive = !quiz.isActive;
+
+      // Save to trigger pre-save hooks
+      await quiz.save();
+
+      res.status(200).json({ message: "Quiz status toggled successfully", isActive: quiz.isActive, quiz });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+
   async removeQuiz(req, res) {
     try {
       const quiz = await Quiz.findByIdAndDelete(req.params.id);

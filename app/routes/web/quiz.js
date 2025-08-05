@@ -19,6 +19,7 @@ router.get("/:id", quizController.getQuiz);
 
 // Update a Quiz
 router.put("/:id", quizController.updateQuiz);
+router.put("/:id/status", quizController.toggleStatus)
 
 // Remove a Quiz
 router.delete("/:id", quizController.removeQuiz);
