@@ -42,7 +42,10 @@ const quizController = {
       const updateData = req.body;
 
       // Check if updateData is empty
-      if (!updateData || (typeof updateData === "object" && Object.keys(updateData).length === 0)) {
+      if (
+        !updateData ||
+        (typeof updateData === "object" && Object.keys(updateData).length === 0)
+      ) {
         return res.status(400).json({ error: "No update data provided." });
       }
 
@@ -61,6 +64,16 @@ const quizController = {
       res.status(200).json({ message: "Quiz updated successfully", quiz });
     } catch (err) {
       res.status(400).json({ error: err.message });
+    }
+  },
+
+  async removeQuiz(req, res) {
+    try {
+      const quiz = await Quiz.findByIdAndDelete(req.params.id);
+      if (!quiz) return res.status(404).json({ error: "Quiz not found" });
+      res.json({ message: "Quiz deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
   },
 
@@ -236,7 +249,11 @@ const quizController = {
         student.answers.length !== quiz.questions.length
       ) {
         return res.status(400).json({
-          error: `Number of answers (${Array.isArray(student.answers) ? student.answers.length : 0}) does not match number of quiz questions (${quiz.questions.length}).`,
+          error: `Number of answers (${
+            Array.isArray(student.answers) ? student.answers.length : 0
+          }) does not match number of quiz questions (${
+            quiz.questions.length
+          }).`,
         });
       }
 
