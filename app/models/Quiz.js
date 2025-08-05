@@ -124,23 +124,23 @@ const quizSchema = new Schema(
   { timestamps: true }
 );
 
-// Validate that exactly one option is correct for each question
+// Pre-save hook to validate and format
 quizSchema.pre("save", function (next) {
+  // Validate that exactly one option is correct for each question
   for (const question of this.questions) {
     const correctOptions = question.options.filter(
       (opt) => opt.isCorrect
     ).length;
     if (correctOptions !== 1) {
-      throw new Error(
-        `هر سوال باید تنها یک جواب  صحیح داشته باشد. سوال ${question.questionText} دارای ${correctOptions} جواب صحیح است.`
+      return next(
+        new Error(
+          `هر سوال باید تنها یک جواب  صحیح داشته باشد. سوال ${question.questionText} دارای ${correctOptions} جواب صحیح است.`
+        )
       );
     }
   }
-  next();
-});
 
-// Pre-save hook to format slug
-quizSchema.pre("save", function (next) {
+  // Format slug
   if (this.slug) {
     let formatted = this.slug
       .toLowerCase()
@@ -149,6 +149,14 @@ quizSchema.pre("save", function (next) {
       .replace(/--+/g, "-") // Replace multiple hyphens with one
       .replace(/^-+|-+$/g, ""); // Trim leading/trailing hyphens
     this.slug = formatted;
+  }
+
+  // Fix start and end time format from second to milisecond
+  if (this.startTime) {
+    this.startTime = this.startTime * 1000;
+  }
+  if (this.endTime) {
+    this.endTime = this.endTime * 1000;
   }
   next();
 });
