@@ -10,6 +10,7 @@ import QuizzesPage from "@/pages/admin/quiz/Quizzes";
 import QuizSettingsPage from "@/pages/admin/quiz/EditQuiz";
 import EditQuizQuestionsPage from "@/pages/admin/quiz/EditQuizQuestions";
 import EditQuizStudentPage from "@/pages/admin/quiz/EditQuizStudents";
+import EditQuizPermissionsPage from "@/pages/admin/quiz/EditQuizPermissions";
 import QuizResultsPage from "@/pages/admin/quiz/QuizResults";
 import NotFound from "@/pages/404Page";
 
@@ -57,6 +58,7 @@ const PrivateRouter = () => {
         />
         <Route path="quizzes/:id/students" element={<EditQuizStudentPage />} />
         <Route path="quizzes/:id/results" element={<QuizResultsPage />} />
+        <Route path="quizzes/:id/permissions" element={<EditQuizPermissionsPage />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,55 +15,51 @@ import {
   Download,
   Users,
   Phone,
+  Loader2,
 } from "lucide-react";
+import useQuiz from "@/hooks/useQuiz";
+import toast from "react-hot-toast";
 
 export default function PermissionsPage() {
   const params = useParams();
-  const router = useRouter();
+  const navigate = useNavigate();
   const quizId = params.id;
 
-  const [quiz, setQuiz] = useState(null);
   const [newNumber, setNewNumber] = useState("");
   const [bulkNumbers, setBulkNumbers] = useState("");
-  const [requirePermission, setRequirePermission] = useState(false);
 
-  useEffect(() => {
-    const savedQuizzes = localStorage.getItem("adminQuizzes");
-    if (savedQuizzes) {
-      const quizzes = JSON.parse(savedQuizzes);
-      const foundQuiz = quizzes.find((q) => q.id === quizId);
-      if (foundQuiz) {
-        setQuiz(foundQuiz);
-        setRequirePermission(foundQuiz.requirePermission || false);
-      } else {
-        router.push("/admin/quizzes");
-      }
-    }
-  }, [quizId, router]);
+  // Use React Query hooks
+  const { data: quiz, isLoading, error } = useQuiz.getQuiz(quizId);
+  const updateQuizMutation = useQuiz.updateQuiz(quizId);
 
-  const saveQuiz = (updatedQuiz) => {
-    const savedQuizzes = localStorage.getItem("adminQuizzes");
-    if (savedQuizzes) {
-      const quizzes = JSON.parse(savedQuizzes);
-      const updatedQuizzes = quizzes.map((q) =>
-        q.id === quizId ? updatedQuiz : q
-      );
-      localStorage.setItem("adminQuizzes", JSON.stringify(updatedQuizzes));
-      setQuiz(updatedQuiz);
-    }
+  // Derived state for access type
+  const accessType = quiz?.accessType || "public";
+  const allowedPhoneNumbers = quiz?.allowedPhoneNumbers || [];
+
+  const isPrivate = accessType === "private";
+
+  const handleUpdateQuiz = (updatedData) => {
+    updateQuizMutation.mutate(updatedData, {
+      onSuccess: () => {
+        toast.success("تنظیمات دسترسی با موفقیت بروزرسانی شد");
+      },
+      onError: (error) => {
+        toast.error("خطا در بروزرسانی تنظیمات دسترسی");
+        console.error("Error updating quiz permissions:", error);
+      },
+    });
   };
 
-  const togglePermissionRequirement = () => {
+  const toggleAccessType = () => {
     if (!quiz) return;
 
+    const newAccessType = accessType === "public" ? "private" : "public";
     const updatedQuiz = {
       ...quiz,
-      requirePermission: !requirePermission,
-      allowedNumbers: !requirePermission ? quiz.allowedNumbers || [] : [],
+      accessType: newAccessType,
     };
 
-    setRequirePermission(!requirePermission);
-    saveQuiz(updatedQuiz);
+    handleUpdateQuiz(updatedQuiz);
   };
 
   const addNumber = () => {
@@ -72,22 +68,21 @@ export default function PermissionsPage() {
     // Validate Iranian mobile number
     const mobileRegex = /^09[0-9]{9}$/;
     if (!mobileRegex.test(newNumber.trim())) {
-      alert("لطفاً شماره موبایل معتبر وارد کنید (مثال: 09123456789)");
+      toast.error("لطفاً شماره موبایل معتبر وارد کنید (مثال: 09123456789)");
       return;
     }
 
-    const allowedNumbers = quiz.allowedNumbers || [];
-    if (allowedNumbers.includes(newNumber.trim())) {
-      alert("این شماره قبلاً اضافه شده است");
+    if (allowedPhoneNumbers.includes(newNumber.trim())) {
+      toast.error("این شماره قبلاً اضافه شده است");
       return;
     }
 
     const updatedQuiz = {
       ...quiz,
-      allowedNumbers: [...allowedNumbers, newNumber.trim()],
+      allowedPhoneNumbers: [...allowedPhoneNumbers, newNumber.trim()],
     };
 
-    saveQuiz(updatedQuiz);
+    handleUpdateQuiz(updatedQuiz);
     setNewNumber("");
   };
 
@@ -96,12 +91,12 @@ export default function PermissionsPage() {
 
     const updatedQuiz = {
       ...quiz,
-      allowedNumbers: (quiz.allowedNumbers || []).filter(
+      allowedPhoneNumbers: allowedPhoneNumbers.filter(
         (num) => num !== numberToRemove
       ),
     };
 
-    saveQuiz(updatedQuiz);
+    handleUpdateQuiz(updatedQuiz);
   };
 
   const addBulkNumbers = () => {
@@ -117,7 +112,7 @@ export default function PermissionsPage() {
     const invalidNumbers = numbers.filter((num) => !mobileRegex.test(num));
 
     if (invalidNumbers.length > 0) {
-      alert(
+      toast.error(
         `شماره‌های نامعتبر: ${invalidNumbers.join(
           ", "
         )}\nلطفاً فرمت صحیح را رعایت کنید (09xxxxxxxxx)`
@@ -125,47 +120,75 @@ export default function PermissionsPage() {
       return;
     }
 
-    const allowedNumbers = quiz.allowedNumbers || [];
     const newNumbers = validNumbers.filter(
-      (num) => !allowedNumbers.includes(num)
+      (num) => !allowedPhoneNumbers.includes(num)
     );
 
     if (newNumbers.length === 0) {
-      alert("تمام شماره‌ها قبلاً اضافه شده‌اند");
+      toast.error("تمام شماره‌ها قبلاً اضافه شده‌اند");
       return;
     }
 
     const updatedQuiz = {
       ...quiz,
-      allowedNumbers: [...allowedNumbers, ...newNumbers],
+      allowedPhoneNumbers: [...allowedPhoneNumbers, ...newNumbers],
     };
 
-    saveQuiz(updatedQuiz);
+    handleUpdateQuiz(updatedQuiz);
     setBulkNumbers("");
-    alert(`${newNumbers.length} شماره جدید اضافه شد`);
+    toast.success(`${newNumbers.length} شماره جدید اضافه شد`);
   };
 
   const exportNumbers = () => {
-    if (!quiz || !quiz.allowedNumbers || quiz.allowedNumbers.length === 0)
-      return;
+    if (!allowedPhoneNumbers || allowedPhoneNumbers.length === 0) return;
 
-    const csvContent = quiz.allowedNumbers.join("\n");
+    const csvContent = allowedPhoneNumbers.join("\n");
     const blob = new Blob([csvContent], { type: "text/plain;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `${quiz.title}-allowed-numbers.txt`);
+    link.setAttribute(
+      "download",
+      `${quiz?.title || "quiz"}-allowed-numbers.txt`
+    );
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-500">در حال بارگذاری...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <p className="text-red-500">خطا در بارگذاری آزمون</p>
+          <Button onClick={() => navigate("/admin/quizzes")} className="mt-4">
+            بازگشت به لیست آزمون‌ها
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!quiz) {
     return (
       <div className="p-6">
         <div className="text-center">
-          <p className="text-gray-500">در حال بارگذاری...</p>
+          <p className="text-gray-500">آزمون یافت نشد</p>
+          <Button onClick={() => navigate("/admin/quizzes")} className="mt-4">
+            بازگشت به لیست آزمون‌ها
+          </Button>
         </div>
       </div>
     );
@@ -177,7 +200,7 @@ export default function PermissionsPage() {
         <SidebarTrigger />
         <Button
           variant="ghost"
-          onClick={() => router.push("/admin/quizzes")}
+          onClick={() => navigate("/admin/quizzes")}
           className="text-gray-600 hover:text-gray-800"
         >
           <ArrowRight className="w-4 h-4 ml-1" />
@@ -199,28 +222,35 @@ export default function PermissionsPage() {
               <div>
                 <h4 className="font-medium text-gray-800">محدودیت دسترسی</h4>
                 <p className="text-sm text-gray-600">
-                  {requirePermission
+                  {isPrivate
                     ? "فقط شماره‌های مجاز می‌توانند در آزمون شرکت کنند"
                     : "همه کاربران می‌توانند در آزمون شرکت کنند"}
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <Badge variant={requirePermission ? "default" : "secondary"}>
-                  {requirePermission ? "محدود" : "آزاد"}
+                <Badge variant={isPrivate ? "default" : "secondary"}>
+                  {isPrivate ? "محدود" : "آزاد"}
                 </Badge>
                 <Button
-                  onClick={togglePermissionRequirement}
-                  variant={requirePermission ? "destructive" : "default"}
+                  onClick={toggleAccessType}
+                  variant={isPrivate ? "destructive" : "default"}
                   size="sm"
+                  disabled={updateQuizMutation.isPending}
                 >
-                  {requirePermission ? "غیرفعال کردن" : "فعال کردن"}
+                  {updateQuizMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isPrivate ? (
+                    "غیرفعال کردن"
+                  ) : (
+                    "فعال کردن"
+                  )}
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {requirePermission && (
+        {isPrivate && (
           <>
             {/* Add Single Number */}
             <Card className="bg-white shadow-sm border border-gray-200">
@@ -238,13 +268,18 @@ export default function PermissionsPage() {
                     placeholder="09123456789"
                     className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20 text-base"
                     maxLength={11}
+                    disabled={updateQuizMutation.isPending}
                   />
                   <Button
                     onClick={addNumber}
-                    disabled={!newNumber.trim()}
+                    disabled={!newNumber.trim() || updateQuizMutation.isPending}
                     className="bg-green-500 hover:bg-green-600"
                   >
-                    <Plus className="w-4 h-4 ml-2" />
+                    {updateQuizMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Plus className="w-4 h-4 ml-2" />
+                    )}
                     افزودن
                   </Button>
                 </div>
@@ -269,17 +304,28 @@ export default function PermissionsPage() {
                   placeholder="هر شماره در یک خط جداگانه:&#10;09123456789&#10;09987654321&#10;09111111111"
                   rows={6}
                   className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20 text-base"
+                  disabled={updateQuizMutation.isPending}
                 />
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     onClick={addBulkNumbers}
-                    disabled={!bulkNumbers.trim()}
+                    disabled={
+                      !bulkNumbers.trim() || updateQuizMutation.isPending
+                    }
                     className="bg-blue-500 hover:bg-blue-600"
                   >
-                    <Upload className="w-4 h-4 ml-2" />
+                    {updateQuizMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4 ml-2" />
+                    )}
                     افزودن همه
                   </Button>
-                  <Button onClick={() => setBulkNumbers("")} variant="outline">
+                  <Button
+                    onClick={() => setBulkNumbers("")}
+                    variant="outline"
+                    disabled={updateQuizMutation.isPending}
+                  >
                     پاک کردن
                   </Button>
                 </div>
@@ -292,13 +338,13 @@ export default function PermissionsPage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <CardTitle className="text-gray-800 flex items-center gap-2 text-base sm:text-lg">
                     <Users className="w-5 h-5" />
-                    شماره‌های مجاز ({quiz.allowedNumbers?.length || 0})
+                    شماره‌های مجاز ({allowedPhoneNumbers.length})
                   </CardTitle>
                   <Button
                     onClick={exportNumbers}
                     variant="outline"
                     disabled={
-                      !quiz.allowedNumbers || quiz.allowedNumbers.length === 0
+                      !allowedPhoneNumbers || allowedPhoneNumbers.length === 0
                     }
                     className="text-green-600 hover:bg-green-50"
                   >
@@ -308,7 +354,7 @@ export default function PermissionsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {!quiz.allowedNumbers || quiz.allowedNumbers.length === 0 ? (
+                {!allowedPhoneNumbers || allowedPhoneNumbers.length === 0 ? (
                   <div className="text-center py-8">
                     <Phone className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-800 mb-2">
@@ -320,7 +366,7 @@ export default function PermissionsPage() {
                   </div>
                 ) : (
                   <div className="grid gap-3">
-                    {quiz.allowedNumbers.map((number, index) => (
+                    {allowedPhoneNumbers.map((number, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -338,8 +384,13 @@ export default function PermissionsPage() {
                           size="sm"
                           variant="outline"
                           className="text-red-600 hover:bg-red-50"
+                          disabled={updateQuizMutation.isPending}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {updateQuizMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
                         </Button>
                       </div>
                     ))}
