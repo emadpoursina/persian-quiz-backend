@@ -251,7 +251,18 @@ const quizValidationSchema = Joi.object({
   endTime: Joi.date().optional().messages({
     "date.base": "End time must be a valid date",
   }),
-});
+})
+  .custom((value, helpers) => {
+    if (value.startTime && value.endTime) {
+      if (value.startTime >= value.endTime) {
+        return helpers.error("any.invalid");
+      }
+    }
+    return value;
+  })
+  .messages({
+    "any.invalid": "زمان شروع باید قبل از زمان پایان باشد.",
+  });
 
 // Validation functions
 function validateQuiz(quiz) {
