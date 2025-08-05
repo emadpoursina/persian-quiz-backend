@@ -75,43 +75,54 @@ const StudentSchema = new Schema({
 });
 
 // Quiz Schema
-const quizSchema = new Schema({
-  title: {
-    type: String,
-    required: true,
-    trim: true,
+const quizSchema = new Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+    },
+    description: {
+      type: String,
+    },
+    questions: {
+      type: [QuestionSchema],
+      default: [],
+    },
+    students: {
+      type: [StudentSchema],
+      default: [],
+    },
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
+    timeLimit: {
+      type: Number,
+      default: 0,
+    },
+    passingScore: {
+      type: Number,
+      default: 70,
+    },
+    startTime: {
+      type: Date,
+      required: false,
+    },
+    endTime: {
+      type: Date,
+      required: false,
+    },
   },
-  slug: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true,
-  },
-  description: {
-    type: String,
-  },
-  questions: {
-    type: [QuestionSchema],
-    default: [],
-  },
-  students: {
-    type: [StudentSchema],
-    default: [],
-  },
-  isActive: {
-    type: Boolean,
-    default: false,
-  },
-  timeLimit: {
-    type: Number,
-    default: 0,
-  },
-  passingScore: {
-    type: Number,
-    default: 70,
-  },
-},   { timestamps: true  } );
+  { timestamps: true }
+);
 
 // Validate that exactly one option is correct for each question
 quizSchema.pre("save", function (next) {
@@ -228,15 +239,18 @@ const quizValidationSchema = Joi.object({
       "array.min": "At least one question is required",
       "any.required": "Questions are required",
     }),
-  students: Joi.array()
-    .items(studentValidationSchema)
-    .default([])
-    .messages({
-      "array.base": "Students must be an array",
-    }),
+  students: Joi.array().items(studentValidationSchema).default([]).messages({
+    "array.base": "Students must be an array",
+  }),
   isActive: Joi.boolean().default(false),
   timeLimit: Joi.number().integer().min(0).default(0),
   passingScore: Joi.number().integer().min(0).max(100).default(70),
+  startTime: Joi.date().optional().messages({
+    "date.base": "Start time must be a valid date",
+  }),
+  endTime: Joi.date().optional().messages({
+    "date.base": "End time must be a valid date",
+  }),
 });
 
 // Validation functions
