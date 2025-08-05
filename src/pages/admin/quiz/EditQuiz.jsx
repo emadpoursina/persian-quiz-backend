@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { DateTimePicker } from "react-advance-jalaali-datepicker";
 import {
   ArrowRight,
   Settings,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import useQuiz from "@/hooks/useQuiz";
 import toast from "react-hot-toast";
+import moment from "moment-jalaali";
 
 export default function QuizSettingsPage() {
   const params = useParams();
@@ -60,8 +62,14 @@ export default function QuizSettingsPage() {
       setValue("description", quiz.description || "");
       setValue("slug", quiz.slug || "");
       setValue("isActive", quiz.isActive || false);
-      setValue("startTime", quiz.startTime || "");
-      setValue("endTime", quiz.endTime || "");
+      setValue(
+        "startTime",
+        moment(quiz.startTime).format("jYYYY/jMM/jDD HH:mm") || ""
+      );
+      setValue(
+        "endTime",
+        moment(quiz.endTime).format("jYYYY/jMM/jDD HH:mm") || ""
+      );
     }
   }, [quiz, setValue]);
 
@@ -79,6 +87,18 @@ export default function QuizSettingsPage() {
       startTime: data.startTime || undefined,
       endTime: data.endTime || undefined,
     };
+
+    // Convert data on noEdit update to unix
+
+    if (typeof data.startTime == "string") {
+      data.startTime = moment(data.startTime, "jYYYY/jMM/jDD HH:mm").unix();
+    }
+    updatedQuizData.startTime = data.startTime;
+
+    if (typeof data.endTime == "string") {
+      data.endTime = moment(data.endTime, "jYYYY/jMM/jDD HH:mm").unix();
+    }
+    updatedQuizData.endTime = data.endTime;
 
     await updateQuizMutation.mutateAsync(updatedQuizData);
   };
@@ -272,11 +292,16 @@ export default function QuizSettingsPage() {
                 <label className="text-sm font-medium text-gray-700">
                   زمان شروع (اختیاری)
                 </label>
-                <Input
-                  type="datetime-local"
-                  {...register("startTime")}
-                  className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20"
-                />
+                {watchedValues.startTime && (
+                  <DateTimePicker
+                    placeholder="انتخاب تاریخ و ساعت"
+                    format="jYYYY/jMM/jDD HH:mm"
+                    id="startDateTimePicker"
+                    onChange={(unix) => setValue("startTime", unix)}
+                    cancelOnBackgroundClick={true}
+                    preSelected={watchedValues.startTime}
+                  />
+                )}
                 <p className="text-xs text-gray-500">
                   اگر تنظیم نشود، آزمون بلافاصله در دسترس خواهد بود
                 </p>
@@ -286,11 +311,16 @@ export default function QuizSettingsPage() {
                 <label className="text-sm font-medium text-gray-700">
                   زمان پایان (اختیاری)
                 </label>
-                <Input
-                  type="datetime-local"
-                  {...register("endTime")}
-                  className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20"
-                />
+                {watchedValues.endTime && (
+                  <DateTimePicker
+                    placeholder="انتخاب تاریخ و ساعت"
+                    format="jYYYY/jMM/jDD HH:mm"
+                    id="endDateTimePicker"
+                    onChange={(unix) => setValue("endTime", unix)}
+                    cancelOnBackgroundClick={true}
+                    preSelected={watchedValues.endTime}
+                  />
+                )}
                 <p className="text-xs text-gray-500">
                   اگر تنظیم نشود، آزمون همیشه در دسترس خواهد بود
                 </p>
