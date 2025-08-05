@@ -120,6 +120,26 @@ const quizSchema = new Schema(
       type: Date,
       required: false,
     },
+    accessType: {
+      type: String,
+      enum: ["public", "private"],
+      default: "public",
+      required: true,
+    },
+    allowedPhoneNumbers: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function (v) {
+          // Only validate if accessType is private
+          if (this.accessType === "private") {
+            return Array.isArray(v) && v.length > 0;
+          }
+          return true;
+        },
+        message: "برای دسترسی خصوصی، حداقل یک شماره تلفن باید تعریف شود.",
+      },
+    },
   },
   { timestamps: true }
 );
@@ -259,17 +279,43 @@ const quizValidationSchema = Joi.object({
   endTime: Joi.date().optional().messages({
     "date.base": "End time must be a valid date",
   }),
+  accessType: Joi.string()
+    .valid("public", "private")
+    .default("public")
+    .required()
+    .messages({
+      "string.empty": "نوع دسترسی نمی‌تواند خالی باشد.",
+      "any.required": "نوع دسترسی الزامی است.",
+      "any.only": "نوع دسترسی باید public یا private باشد.",
+    }),
+  allowedPhoneNumbers: Joi.array().items(Joi.string()).default([]).messages({
+    "array.base": "شماره‌های تلفن مجاز باید آرایه‌ای از رشته‌ها باشند.",
+  }),
 })
   .custom((value, helpers) => {
+    // Validate start time is before end time
     if (value.startTime && value.endTime) {
       if (value.startTime >= value.endTime) {
         return helpers.error("any.invalid");
       }
     }
+
+    // Validate that private access has at least one phone number
+    if (value.accessType === "private") {
+      if (
+        !value.allowedPhoneNumbers ||
+        value.allowedPhoneNumbers.length === 0
+      ) {
+        return helpers.error("any.private_access");
+      }
+    }
+
     return value;
   })
   .messages({
     "any.invalid": "زمان شروع باید قبل از زمان پایان باشد.",
+    "any.private_access":
+      "برای دسترسی خصوصی، حداقل یک شماره تلفن باید تعریف شود.",
   });
 
 // Validation functions
