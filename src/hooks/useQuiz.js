@@ -262,6 +262,20 @@ const useQuiz = {
     });
   },
 
+  toggleQuizStatus() {
+    return useMutation({
+      mutationFn: async (quizId) => {
+        const response = await apiClient.put(`/quiz/${quizId}/status`);
+
+        if (!response.ok) {
+          throw new Error(response.data?.message || "خطا در بروزرسانی آزمون");
+        }
+
+        return response.data;
+      },
+    });
+  },
+
   deleteQuiz(quizId) {
     const queryClient = useQueryClient();
 
