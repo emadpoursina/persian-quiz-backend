@@ -46,18 +46,19 @@ const quizController = {
         return res.status(400).json({ error: "No update data provided." });
       }
 
-      // Find the quiz by ID and update it with new data
-      const updatedQuiz = await Quiz.findByIdAndUpdate(
-        quizId,
-        updateData,
-        { new: true, runValidators: true }
-      );
-
-      if (!updatedQuiz) {
+      // Find the quiz by ID
+      const quiz = await Quiz.findById(quizId);
+      if (!quiz) {
         return res.status(404).json({ error: "Quiz not found" });
       }
 
-      res.status(200).json({ message: "Quiz updated successfully", quiz: updatedQuiz });
+      // Update the quiz fields
+      Object.assign(quiz, updateData);
+
+      // Save to trigger pre-save hooks
+      await quiz.save();
+
+      res.status(200).json({ message: "Quiz updated successfully", quiz });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
