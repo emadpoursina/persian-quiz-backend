@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import toast from "react-hot-toast";
+import { deleteQuiz } from "@/lib/storage";
 
 const useQuiz = {
   addQuiz() {
@@ -301,6 +302,20 @@ const useQuiz = {
       onError: (error) => {
         toast.error("خطا در حذف آزمون");
         console.error("Error deleting quiz:", error);
+      },
+    });
+  },
+
+  deleteQuiz() {
+    return useMutation({
+      mutationFn: async (quizId) => {
+        const response = await apiClient.delete(`/quiz/${quizId}`);
+
+        if (!response.ok) {
+          throw new Error(response.data?.message || "خطا در حذف آزمون");
+        }
+
+        return response.data;
       },
     });
   },
