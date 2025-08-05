@@ -36,6 +36,33 @@ const quizController = {
     }
   },
 
+  async updateQuiz(req, res) {
+    try {
+      const quizId = req.params.id;
+      const updateData = req.body;
+
+      // Check if updateData is empty
+      if (!updateData || (typeof updateData === "object" && Object.keys(updateData).length === 0)) {
+        return res.status(400).json({ error: "No update data provided." });
+      }
+
+      // Find the quiz by ID and update it with new data
+      const updatedQuiz = await Quiz.findByIdAndUpdate(
+        quizId,
+        updateData,
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedQuiz) {
+        return res.status(404).json({ error: "Quiz not found" });
+      }
+
+      res.status(200).json({ message: "Quiz updated successfully", quiz: updatedQuiz });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+
   async addQuestion(req, res) {
     try {
       const quizId = req.params.id;

@@ -17,6 +17,9 @@ router.get("/", quizController.getAllQuizzes);
 // Get a single Quiz
 router.get("/:id", quizController.getQuiz);
 
+// Update a Quiz
+router.put("/:id", quizController.updateQuiz);
+
 // Question Routes
 router.post(
   "/:id/questions/add",
