@@ -23,11 +23,20 @@ export default function QuizzesPage() {
   const { getAllQuizzes } = useQuiz;
   const { data: quizzes = [], isLoading, error, refetch } = getAllQuizzes();
   const toggleQuizStatus = useQuiz.toggleQuizStatus();
+  const deleteQuiz = useQuiz.deleteQuiz();
 
   const handleDeleteQuiz = (quizId) => {
     if (confirm("آیا از حذف این آزمون اطمینان دارید؟")) {
-      // TODO: Implement delete quiz mutation
-      console.log("Delete quiz:", quizId);
+      deleteQuiz.mutateAsync(quizId, {
+        onSuccess: () => {
+          refetch();
+          toast.success("آزمون با موفقیت حذف شد");
+        },
+        onError: (error) => {
+          toast.error("خطا در حذف آزمون");
+          console.error("Error updating quiz status:", error);
+        },
+      });
     }
   };
 
