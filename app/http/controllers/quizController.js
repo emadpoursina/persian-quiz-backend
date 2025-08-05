@@ -5,11 +5,11 @@ import path from "path";
 const quizController = {
   async addQuiz(req, res) {
     try {
-      const task = await new Quiz({
+      const quiz = await new Quiz({
         ...req.body,
       }).save();
 
-      res.status(201).json(task);
+      res.status(201).json(quiz);
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
