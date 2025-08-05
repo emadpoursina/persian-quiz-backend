@@ -17,10 +17,12 @@ import {
   AlertCircle,
 } from "lucide-react";
 import useQuiz from "@/hooks/useQuiz";
+import { toast } from "react-hot-toast";
 
 export default function QuizzesPage() {
   const { getAllQuizzes } = useQuiz;
   const { data: quizzes = [], isLoading, error, refetch } = getAllQuizzes();
+  const toggleQuizStatus = useQuiz.toggleQuizStatus();
 
   const handleDeleteQuiz = (quizId) => {
     if (confirm("آیا از حذف این آزمون اطمینان دارید؟")) {
@@ -29,9 +31,17 @@ export default function QuizzesPage() {
     }
   };
 
-  const toggleQuizStatus = (quizId) => {
-    // TODO: Implement toggle quiz status mutation
-    console.log("Toggle quiz status:", quizId);
+  const handleQuizStatusToggle = (quizId) => {
+    toggleQuizStatus.mutateAsync(quizId, {
+      onSuccess: () => {
+        refetch();
+        toast.success("وضعیت آزمون با موفقیت تغییر کرد");
+      },
+      onError: (error) => {
+        toast.error("خطا در بروزرسانی وضعیت آزمون");
+        console.error("Error updating quiz status:", error);
+      },
+    });
   };
 
   const getQuizResults = (quizId) => {
@@ -189,7 +199,7 @@ export default function QuizzesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => toggleQuizStatus(quiz._id)}
+                          onClick={() => handleQuizStatusToggle(quiz._id)}
                           className={`w-8 h-8 p-0 ${
                             quiz.isActive
                               ? "text-red-600 hover:bg-red-50"
