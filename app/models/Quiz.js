@@ -129,16 +129,6 @@ const quizSchema = new Schema(
     allowedPhoneNumbers: {
       type: [String],
       default: [],
-      validate: {
-        validator: function (v) {
-          // Only validate if accessType is private
-          if (this.accessType === "private") {
-            return Array.isArray(v) && v.length > 0;
-          }
-          return true;
-        },
-        message: "برای دسترسی خصوصی، حداقل یک شماره تلفن باید تعریف شود.",
-      },
     },
   },
   { timestamps: true }
