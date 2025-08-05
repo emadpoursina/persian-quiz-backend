@@ -111,7 +111,7 @@ const quizSchema = new Schema({
     type: Number,
     default: 70,
   },
-});
+},   { timestamps: true  } );
 
 // Validate that exactly one option is correct for each question
 quizSchema.pre("save", function (next) {
