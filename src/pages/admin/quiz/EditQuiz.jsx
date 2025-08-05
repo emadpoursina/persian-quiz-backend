@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,122 +15,106 @@ import {
   Clock,
   Trash2,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
+import useQuiz from "@/hooks/useQuiz";
+import toast from "react-hot-toast";
 
 export default function QuizSettingsPage() {
   const params = useParams();
   const navigate = useNavigate();
   const quizId = params.id;
 
-  const [quiz, setQuiz] = (useState < Quiz) | (null > null);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [slug, setSlug] = useState("");
-  const [isActive, setIsActive] = useState(false);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
+  // Use React Hook Form
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      title: "",
+      description: "",
+      slug: "",
+      isActive: false,
+      startTime: "",
+      endTime: "",
+    },
+  });
 
+  // Watch form values
+  const watchedValues = watch();
+
+  // Use the useQuiz hook to fetch quiz data
+  const { data: quiz, isLoading, error } = useQuiz.getQuiz(quizId);
+
+  // Use mutation hooks for updating and deleting
+  const updateQuizMutation = useQuiz.updateQuiz(quizId);
+  const deleteQuizMutation = useQuiz.deleteQuiz(quizId);
+
+  // Update form fields when quiz data is loaded
   useEffect(() => {
-    const savedQuizzes = localStorage.getItem("adminQuizzes");
-    if (savedQuizzes) {
-      const quizzes = JSON.parse(savedQuizzes);
-      const foundQuiz = quizzes.find((q) => q.id === quizId);
-      if (foundQuiz) {
-        setQuiz(foundQuiz);
-        setTitle(foundQuiz.title);
-        setDescription(foundQuiz.description);
-        setSlug(foundQuiz.slug);
-        setIsActive(foundQuiz.isActive);
-        setStartTime(foundQuiz.startTime || "");
-        setEndTime(foundQuiz.endTime || "");
-      } else {
-        navigate("/admin/quizzes");
-      }
+    if (quiz) {
+      setValue("title", quiz.title || "");
+      setValue("description", quiz.description || "");
+      setValue("slug", quiz.slug || "");
+      setValue("isActive", quiz.isActive || false);
+      setValue("startTime", quiz.startTime || "");
+      setValue("endTime", quiz.endTime || "");
     }
-  }, [quizId]);
+  }, [quiz, setValue]);
 
-  const saveSettings = async () => {
-    if (!quiz || !title.trim() || !description.trim() || !slug.trim()) return;
-
-    setIsSaving(true);
-
-    try {
-      const savedQuizzes = localStorage.getItem("adminQuizzes");
-      if (savedQuizzes) {
-        const quizzes = JSON.parse(savedQuizzes);
-
-        // Check if slug is unique (excluding current quiz)
-        const slugExists = quizzes.some(
-          (q) => q.slug === slug && q.id !== quizId
-        );
-        if (slugExists) {
-          alert(
-            "این نام مستعار قبلاً استفاده شده است. لطفاً نام دیگری انتخاب کنید."
-          );
-          setIsSaving(false);
-          return;
-        }
-
-        const updatedQuizzes = quizzes.map((q) =>
-          q.id === quizId
-            ? {
-                ...q,
-                title: title.trim(),
-                description: description.trim(),
-                slug: slug.trim(),
-                isActive,
-                startTime: startTime || undefined,
-                endTime: endTime || undefined,
-              }
-            : q
-        );
-
-        localStorage.setItem("adminQuizzes", JSON.stringify(updatedQuizzes));
-
-        const updatedQuiz = updatedQuizzes.find((q) => q.id === quizId);
-        setQuiz(updatedQuiz);
-
-        alert("تنظیمات با موفقیت ذخیره شد!");
-      }
-    } catch (error) {
-      console.error("Error saving settings:", error);
-      alert("خطا در ذخیره تنظیمات. لطفاً دوباره تلاش کنید.");
-    } finally {
-      setIsSaving(false);
+  const onSubmit = async (data) => {
+    if (!quiz) {
+      toast.error("آزمون مورد نظر یافت نشد");
+      return;
     }
+
+    const updatedQuizData = {
+      title: data.title.trim(),
+      description: data.description.trim(),
+      slug: data.slug.trim(),
+      isActive: data.isActive,
+      startTime: data.startTime || undefined,
+      endTime: data.endTime || undefined,
+    };
+
+    await updateQuizMutation.mutateAsync(updatedQuizData);
   };
 
-  const deleteQuiz = () => {
+  const deleteQuiz = async () => {
     if (!quiz) return;
 
     const confirmMessage = `آیا از حذف آزمون "${quiz.title}" اطمینان دارید؟\n\nاین عمل غیرقابل بازگشت است و تمام سوالات و نتایج آزمون حذف خواهد شد.`;
 
     if (confirm(confirmMessage)) {
-      const savedQuizzes = localStorage.getItem("adminQuizzes");
-      const savedResults = localStorage.getItem("adminResults");
-
-      if (savedQuizzes) {
-        const quizzes = JSON.parse(savedQuizzes);
-        const updatedQuizzes = quizzes.filter((q) => q.id !== quizId);
-        localStorage.setItem("adminQuizzes", JSON.stringify(updatedQuizzes));
-      }
-
-      if (savedResults) {
-        const results = JSON.parse(savedResults);
-        const updatedResults = results.filter((r) => r.quizId !== quizId);
-        localStorage.setItem("adminResults", JSON.stringify(updatedResults));
-      }
-
+      await deleteQuizMutation.mutateAsync();
       navigate("/admin/quizzes");
     }
   };
 
-  if (!quiz) {
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center gap-3">
+            <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+            <span className="text-gray-600">در حال بارگذاری...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !quiz) {
     return (
       <div className="p-6">
         <div className="text-center">
-          <p className="text-gray-500">در حال بارگذاری...</p>
+          <p className="text-red-500">خطا در بارگذاری آزمون</p>
+          <Button onClick={() => navigate("/admin/quizzes")} className="mt-4">
+            بازگشت به لیست آزمون‌ها
+          </Button>
         </div>
       </div>
     );
@@ -149,7 +134,10 @@ export default function QuizSettingsPage() {
         </Button>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 grid gap-6">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="max-w-4xl mx-auto px-4 grid gap-6"
+      >
         {/* Basic Settings */}
         <Card className="bg-white shadow-sm border border-gray-200">
           <CardHeader>
@@ -165,11 +153,23 @@ export default function QuizSettingsPage() {
                   عنوان آزمون *
                 </label>
                 <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  {...register("title", {
+                    required: "عنوان آزمون الزامی است",
+                    minLength: {
+                      value: 3,
+                      message: "عنوان آزمون باید حداقل ۳ کاراکتر باشد",
+                    },
+                  })}
                   placeholder="عنوان آزمون"
-                  className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20"
+                  className={`bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20 ${
+                    errors.title
+                      ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
+                      : ""
+                  }`}
                 />
+                {errors.title && (
+                  <p className="text-red-500 text-sm">{errors.title.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -181,16 +181,35 @@ export default function QuizSettingsPage() {
                     /quiz/
                   </span>
                   <Input
-                    value={slug}
-                    onChange={(e) =>
-                      setSlug(
-                        e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")
-                      )
-                    }
+                    {...register("slug", {
+                      required: "نام مستعار الزامی است",
+                      pattern: {
+                        value: /^[a-z0-9-]+$/,
+                        message:
+                          "نام مستعار فقط می‌تواند شامل حروف کوچک، اعداد و خط تیره باشد",
+                      },
+                      minLength: {
+                        value: 3,
+                        message: "نام مستعار باید حداقل ۳ کاراکتر باشد",
+                      },
+                    })}
                     placeholder="quiz-name"
-                    className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20 rounded-r-none"
+                    className={`bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20 rounded-r-none ${
+                      errors.slug
+                        ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
+                        : ""
+                    }`}
+                    onChange={(e) => {
+                      const value = e.target.value
+                        .toLowerCase()
+                        .replace(/[^a-z0-9-]/g, "");
+                      setValue("slug", value);
+                    }}
                   />
                 </div>
+                {errors.slug && (
+                  <p className="text-red-500 text-sm">{errors.slug.message}</p>
+                )}
               </div>
             </div>
 
@@ -199,12 +218,20 @@ export default function QuizSettingsPage() {
                 توضیحات *
               </label>
               <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                {...register("description")}
                 placeholder="توضیحات آزمون"
                 rows={4}
-                className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20"
+                className={`bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20 ${
+                  errors.description
+                    ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
+                    : ""
+                }`}
               />
+              {errors.description && (
+                <p className="text-red-500 text-sm">
+                  {errors.description.message}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -222,16 +249,21 @@ export default function QuizSettingsPage() {
               <div>
                 <h4 className="font-medium text-gray-800">وضعیت آزمون</h4>
                 <p className="text-sm text-gray-600">
-                  {isActive
+                  {watchedValues.isActive
                     ? "آزمون فعال است و کاربران می‌توانند شرکت کنند"
                     : "آزمون غیرفعال است"}
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <Badge variant={isActive ? "default" : "secondary"}>
-                  {isActive ? "فعال" : "غیرفعال"}
+                <Badge
+                  variant={watchedValues.isActive ? "default" : "secondary"}
+                >
+                  {watchedValues.isActive ? "فعال" : "غیرفعال"}
                 </Badge>
-                <Switch checked={isActive} onCheckedChange={setIsActive} />
+                <Switch
+                  checked={watchedValues.isActive}
+                  onCheckedChange={(checked) => setValue("isActive", checked)}
+                />
               </div>
             </div>
 
@@ -242,8 +274,7 @@ export default function QuizSettingsPage() {
                 </label>
                 <Input
                   type="datetime-local"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
+                  {...register("startTime")}
                   className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20"
                 />
                 <p className="text-xs text-gray-500">
@@ -257,8 +288,7 @@ export default function QuizSettingsPage() {
                 </label>
                 <Input
                   type="datetime-local"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
+                  {...register("endTime")}
                   className="bg-gray-50 border-gray-300 focus:border-purple-500 focus:ring-purple-500/20"
                 />
                 <p className="text-xs text-gray-500">
@@ -278,20 +308,13 @@ export default function QuizSettingsPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-blue-600">
-                  {quiz.questions.length}
+                  {quiz.questions?.length || 0}
                 </div>
                 <div className="text-sm text-blue-800">تعداد سوالات</div>
               </div>
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {(() => {
-                    const savedResults = localStorage.getItem("adminResults");
-                    if (savedResults) {
-                      const results = JSON.parse(savedResults);
-                      return results.filter((r) => r.quizId === quizId).length;
-                    }
-                    return 0;
-                  })()}
+                  {quiz.students?.length || 0}
                 </div>
                 <div className="text-sm text-green-800">شرکت‌کنندگان</div>
               </div>
@@ -315,13 +338,16 @@ export default function QuizSettingsPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex gap-3">
             <Button
-              onClick={saveSettings}
+              type="submit"
               disabled={
-                isSaving || !title.trim() || !description.trim() || !slug.trim()
+                updateQuizMutation.isPending ||
+                !watchedValues.title?.trim() ||
+                !watchedValues.description?.trim() ||
+                !watchedValues.slug?.trim()
               }
               className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
             >
-              {isSaving ? (
+              {updateQuizMutation.isPending ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-2" />
                   در حال ذخیره...
@@ -335,6 +361,7 @@ export default function QuizSettingsPage() {
             </Button>
 
             <Button
+              type="button"
               variant="outline"
               onClick={() => window.open(`/quiz/${quiz.slug}`, "_blank")}
               className="text-blue-600 hover:bg-blue-50"
@@ -345,15 +372,26 @@ export default function QuizSettingsPage() {
           </div>
 
           <Button
+            type="button"
             variant="outline"
             onClick={deleteQuiz}
+            disabled={deleteQuizMutation.isPending}
             className="text-red-600 hover:bg-red-50 border-red-200"
           >
-            <Trash2 className="w-4 h-4 ml-2" />
-            حذف آزمون
+            {deleteQuizMutation.isPending ? (
+              <>
+                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin ml-2" />
+                در حال حذف...
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4 ml-2" />
+                حذف آزمون
+              </>
+            )}
           </Button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
