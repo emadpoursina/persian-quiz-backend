@@ -52,6 +52,8 @@ export default function QuestionsPage() {
     isSuccess: isUpdateSuccess,
   } = useQuiz.updateQuestion(quizId, () => setEditingQuestion(null));
 
+  const deleteQuestion = useQuiz.deleteQuestion(quizId);
+
   useEffect(() => {
     if (quiz) {
       setQuestionList(quiz.questions);
@@ -59,8 +61,9 @@ export default function QuestionsPage() {
   }, [quiz]);
 
   // Event Handlers
-  const deleteQuestion = (questionId) => {
+  const handleDeleteQuestion = (questionId) => {
     if (!confirm("آیا از حذف این سوال اطمینان دارید؟")) return;
+    deleteQuestion.mutateAsync(questionId);
   };
 
   const handleAddQuestion = ({
@@ -366,7 +369,7 @@ export default function QuestionsPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => deleteQuestion(question.id)}
+                        onClick={() => handleDeleteQuestion(question._id)}
                         className="text-red-600 hover:bg-red-50"
                       >
                         <Trash2 className="w-4 h-4" />
