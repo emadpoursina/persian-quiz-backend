@@ -88,7 +88,21 @@ export default function PersianQuizApp() {
           <Quiz
             userName={userInfo.name}
             onComplete={handleQuizComplete}
-            questions={quiz.questions}
+            questions={
+              (quiz.questions = quiz.questions.map((q) => {
+                return {
+                  ...q,
+                  media:
+                    q.attachmentType === "none"
+                      ? undefined
+                      : {
+                          type: q.attachmentType,
+                          url: q.attachmentUrl,
+                          alt: q.attachmentAlt,
+                        },
+                };
+              }))
+            }
           />
         )}
         {currentStep === "results" && (

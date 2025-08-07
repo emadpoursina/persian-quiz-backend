@@ -1,92 +1,58 @@
-import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Clock, ImageIcon, Video } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Clock, ImageIcon, Video } from "lucide-react";
 
-const defaultQuestions = [
-  {
-    id: "1",
-    question: "پایتخت ایران کدام شهر است؟",
-    options: ["تهران", "اصفهان", "شیراز", "مشهد"],
-    correct: 0,
-  },
-  {
-    id: "2",
-    question: "کدام یک از این کشورها همسایه ایران نیست؟",
-    options: ["عراق", "افغانستان", "سوریه", "ترکیه"],
-    correct: 2,
-  },
-  {
-    id: "3",
-    question: "بزرگترین دریاچه ایران کدام است؟",
-    options: ["دریاچه ارومیه", "دریاچه نمک", "دریاچه پریشان", "دریاچه زریوار"],
-    correct: 0,
-  },
-  {
-    id: "4",
-    question: "کدام شاعر، مؤلف شاهنامه است؟",
-    options: ["حافظ", "سعدی", "فردوسی", "مولوی"],
-    correct: 2,
-  },
-  {
-    id: "5",
-    question: "واحد پول ایران چیست؟",
-    options: ["دینار", "درهم", "ریال", "تومان"],
-    correct: 2,
-  },
-]
-
-export default function Quiz({ userName, onComplete, questions: customQuestions }) {
-  const questions = customQuestions || defaultQuestions
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState(null)
-  const [timeLeft, setTimeLeft] = useState(3)
-  const [isAnswered, setIsAnswered] = useState(false)
-  const [allAnswers, setAllAnswers] = useState([])
-  const [score, setScore] = useState(0)
+export default function Quiz({ userName, onComplete, questions }) {
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(3);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [allAnswers, setAllAnswers] = useState([]);
+  const [score, setScore] = useState(0);
 
   useEffect(() => {
     if (isAnswered && timeLeft > 0) {
       const timer = setTimeout(() => {
-        setTimeLeft(timeLeft - 1)
-      }, 1000)
-      return () => clearTimeout(timer)
+        setTimeLeft(timeLeft - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
     } else if (isAnswered && timeLeft === 0) {
-      handleNextQuestion()
+      handleNextQuestion();
     }
-  }, [isAnswered, timeLeft])
+  }, [isAnswered, timeLeft]);
 
   const handleAnswerSelect = (answerIndex) => {
-    if (isAnswered) return
+    if (isAnswered) return;
 
-    setSelectedAnswer(answerIndex)
-    setIsAnswered(true)
-    setTimeLeft(3)
+    setSelectedAnswer(answerIndex);
+    setIsAnswered(true);
+    setTimeLeft(3);
 
-    const newAnswers = [...allAnswers]
-    newAnswers[currentQuestion] = answerIndex
-    setAllAnswers(newAnswers)
+    const newAnswers = [...allAnswers];
+    newAnswers[currentQuestion] = answerIndex;
+    setAllAnswers(newAnswers);
 
     // Calculate score but don't show it to user
     if (answerIndex === questions[currentQuestion].correct) {
-      setScore(score + 1)
+      setScore(score + 1);
     }
-  }
+  };
 
   const handleNextQuestion = () => {
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
-      setSelectedAnswer(null)
-      setIsAnswered(false)
-      setTimeLeft(3)
+      setCurrentQuestion(currentQuestion + 1);
+      setSelectedAnswer(null);
+      setIsAnswered(false);
+      setTimeLeft(3);
     } else {
-      onComplete(score, questions.length, allAnswers)
+      onComplete(score, questions.length, allAnswers);
     }
-  }
+  };
 
-  const progress = ((currentQuestion + 1) / questions.length) * 100
-  const currentQ = questions[currentQuestion]
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const currentQ = questions[currentQuestion];
 
   return (
     <div className="flex items-center justify-center min-h-[100dvh] px-4">
@@ -94,7 +60,9 @@ export default function Quiz({ userName, onComplete, questions: customQuestions 
         <CardContent className="p-4 sm:p-8">
           {/* Header */}
           <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">سلام {userName} عزیز! 👋</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
+              سلام {userName} عزیز! 👋
+            </h2>
             <div className="flex items-center justify-between text-gray-600 text-sm mb-4">
               <span>
                 سوال {currentQuestion + 1} از {questions.length}
@@ -136,8 +104,10 @@ export default function Quiz({ userName, onComplete, questions: customQuestions 
                       alt={currentQ.media.alt || "تصویر سوال"}
                       className="max-w-full h-auto max-h-64 rounded-lg shadow-lg border-2 border-gray-200"
                       onError={(e) => {
-                        const target = e.target
-                        target.src = `/placeholder.svg?height=200&width=300&text=${encodeURIComponent(currentQ.media?.alt || "تصویر سوال")}`
+                        const target = e.target;
+                        target.src = `/placeholder.svg?height=200&width=300&text=${encodeURIComponent(
+                          currentQ.media?.alt || "تصویر سوال"
+                        )}`;
                       }}
                     />
                   ) : (
@@ -161,7 +131,9 @@ export default function Quiz({ userName, onComplete, questions: customQuestions 
               <div className="flex items-center justify-center mb-6 sm:mb-8">
                 <div className="flex items-center bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full px-4 py-2">
                   <Clock className="w-4 h-4 text-blue-600 ml-2" />
-                  <span className="text-blue-700 font-medium text-sm">سوال بعدی در {timeLeft} ثانیه</span>
+                  <span className="text-blue-700 font-medium text-sm">
+                    سوال بعدی در {timeLeft} ثانیه
+                  </span>
                 </div>
               </div>
             )}
@@ -170,18 +142,19 @@ export default function Quiz({ userName, onComplete, questions: customQuestions 
             <div className="grid gap-3 sm:gap-4">
               {currentQ.options.map((option, index) => {
                 let buttonClass =
-                  "w-full p-3 sm:p-4 text-right rounded-lg border-2 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base "
+                  "w-full p-3 sm:p-4 text-right rounded-lg border-2 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base ";
 
                 if (!isAnswered) {
                   buttonClass +=
-                    "bg-gray-50 border-gray-300 text-gray-800 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:border-purple-300 hover:text-purple-700"
+                    "bg-gray-50 border-gray-300 text-gray-800 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:border-purple-300 hover:text-purple-700";
                 } else {
                   if (index === selectedAnswer) {
                     // Show selected answer with blue highlight
-                    buttonClass += "bg-gradient-to-r from-blue-50 to-blue-100 border-blue-400 text-blue-800"
+                    buttonClass +=
+                      "bg-gradient-to-r from-blue-50 to-blue-100 border-blue-400 text-blue-800";
                   } else {
                     // Show unselected options as disabled
-                    buttonClass += "bg-gray-50 border-gray-200 text-gray-400"
+                    buttonClass += "bg-gray-50 border-gray-200 text-gray-400";
                   }
                 }
 
@@ -194,7 +167,7 @@ export default function Quiz({ userName, onComplete, questions: customQuestions 
                     variant="ghost"
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="font-medium">{option}</span>
+                      <span className="font-medium">{option.text}</span>
                       {isAnswered && index === selectedAnswer && (
                         <div className="mr-2">
                           <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
@@ -204,7 +177,7 @@ export default function Quiz({ userName, onComplete, questions: customQuestions 
                       )}
                     </div>
                   </Button>
-                )
+                );
               })}
             </div>
           </div>
@@ -220,5 +193,5 @@ export default function Quiz({ userName, onComplete, questions: customQuestions 
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
