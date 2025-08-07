@@ -19,7 +19,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
       <Route path="/" element={<Home />} />
-      <Route path="/:slug" element={<PersianQuizApp />} />
+      <Route path="/quiz/:slug" element={<PersianQuizApp />} />
       {!authStorage.getToken() ? (
         <>
           <Route path="/admin/*" element={<Navigate to="/login" />} />

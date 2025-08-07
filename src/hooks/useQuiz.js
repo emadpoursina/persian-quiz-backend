@@ -59,6 +59,24 @@ const useQuiz = {
     });
   },
 
+  getQuizBySlug(slug) {
+    return useQuery({
+      queryKey: ["quiz", slug],
+      queryFn: async () => {
+        const response = await apiClient.get(`/quiz/${slug}`);
+
+        if (!response.ok) {
+          throw new Error(response.data?.message || "خطا در دریافت آزمون");
+        }
+
+        return response.data;
+      },
+      onError: (error) => {
+        console.error("Error getting quiz:", error);
+      },
+    });
+  },
+
   getQuiz(id) {
     const queryClient = useQueryClient();
 
