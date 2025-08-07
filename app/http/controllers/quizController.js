@@ -413,6 +413,33 @@ const quizController = {
       res.status(400).json({ error: err.message });
     }
   },
+
+  async getAllStudents(req, res) {
+    try {
+      // Get all quizzes, only select students and createdAt
+      const quizzes = await Quiz.find({}, { students: 1, createdAt: 1, _id: 0 });
+
+      // Flatten all students from all quizzes, and add quizCreatedAt to each student
+      let allStudents = [];
+      quizzes.forEach((quiz) => {
+        if (Array.isArray(quiz.students)) {
+          quiz.students.forEach((student) => {
+            allStudents.push({
+              ...student.toObject(),
+              quizCreatedAt: quiz.createdAt,
+            });
+          });
+        }
+      });
+
+      // Sort all students by their quiz's creation date (descending: newest first)
+      allStudents.sort((a, b) => new Date(b.quizCreatedAt) - new Date(a.quizCreatedAt));
+
+      res.status(200).json({ students: allStudents });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
 };
 
 export default quizController;

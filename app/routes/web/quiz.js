@@ -15,11 +15,14 @@ import authenticationMiddleware from "../../http/middleware/authenticationMiddle
 // Get all Quizzes
 router.get("/", quizController.getAllQuizzes);
 
-// Get a quiz using slug
-router.get("/:slug", quizController.getQuizBySlug);
+// Get all students
+router.get("/students", quizController.getAllStudents);
 
 // Get a quiz using id
 router.get("/id/:id", quizController.getQuiz);
+
+// Get a quiz using slug
+router.get("/:slug", quizController.getQuizBySlug);
 
 // Authentication Middleware
 router.use(authenticationMiddleware);
