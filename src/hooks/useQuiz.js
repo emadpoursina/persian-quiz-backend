@@ -234,6 +234,33 @@ const useQuiz = {
     });
   },
 
+  deleteQuestion(quizId) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: async (questionId) => {
+        const response = await apiClient.delete(
+          `/quiz/${quizId}/questions/${questionId}`
+        );
+
+        if (!response.ok) {
+          throw new Error(response.data?.message || "خطا در حذف سوال آزمون");
+        }
+
+        return response.data;
+      },
+      onSuccess: () => {
+        // Invalidate the quiz questions cache if needed
+        queryClient.invalidateQueries({ queryKey: ["quiz", quizId] });
+        toast.success("سوال آزمون حذف شد.");
+      },
+      onError: (error) => {
+        toast.error("خطا در حذف سوال آزمون");
+        console.error("Error deleting question:", error);
+      },
+    });
+  },
+
   getQuizStudents(quizId) {
     return useQuery({
       queryKey: ["quiz", quizId, "students"],
