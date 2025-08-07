@@ -9,8 +9,7 @@ export default function PersianQuizApp() {
   const { slug } = useParams();
   const [currentStep, setCurrentStep] = useState("welcome");
   const [userInfo, setUserInfo] = useState({ name: "", mobile: "" });
-  const [score, setScore] = useState(0);
-  const [totalQuestions, setTotalQuestions] = useState(0);
+  const [allAnswers, setAllAnswers] = useState([]);
 
   // Fetch quiz data from server using the slug
   const { data: quiz, isLoading, error } = useQuiz.getQuizBySlug(slug);
@@ -20,16 +19,14 @@ export default function PersianQuizApp() {
     setCurrentStep("quiz");
   };
 
-  const handleQuizComplete = (finalScore, total) => {
-    setScore(finalScore);
-    setTotalQuestions(total);
+  const handleQuizComplete = (allAnswers) => {
+    setAllAnswers(allAnswers);
     setCurrentStep("results");
   };
 
   const handleRestart = () => {
     setCurrentStep("welcome");
-    setScore(0);
-    setTotalQuestions(0);
+    setAllAnswers([]);
     setUserInfo({ name: "", mobile: "" });
   };
 
@@ -108,8 +105,8 @@ export default function PersianQuizApp() {
         {currentStep === "results" && (
           <Results
             userName={userInfo.name}
-            score={score}
-            totalQuestions={totalQuestions}
+            totalQuestions={quiz.questions.length}
+            allAnswers={allAnswers}
             onRestart={handleRestart}
           />
         )}
