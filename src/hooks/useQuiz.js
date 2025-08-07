@@ -389,6 +389,21 @@ const useQuiz = {
       },
     });
   },
+
+  getAllStudents() {
+    return useQuery({
+      queryKey: ["quiz", "students"],
+      queryFn: async () => {
+        const response = await apiClient.get(`/quiz/students`);
+        if (!response.ok) {
+          throw new Error(
+            response.data?.message || "خطا در دریافت تاریخچه"
+          );
+        }
+        return response.data;
+      },
+    });
+  },
 };
 
 export default useQuiz;
