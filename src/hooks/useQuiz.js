@@ -65,7 +65,7 @@ const useQuiz = {
     return useQuery({
       queryKey: ["quiz", id],
       queryFn: async () => {
-        const response = await apiClient.get(`/quiz/${id}`);
+        const response = await apiClient.get(`/quiz/id/${id}`);
 
         if (!response.ok) {
           throw new Error(response.data?.message || "خطا در دریافت آزمون");
