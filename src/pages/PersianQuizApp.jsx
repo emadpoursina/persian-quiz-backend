@@ -47,7 +47,6 @@ export default function PersianQuizApp() {
 
   // Show error state
   if (error) {
-
     return (
       <div
         className="min-h-[100dvh] bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center"
@@ -81,6 +80,8 @@ export default function PersianQuizApp() {
             onStart={handleStartQuiz}
             quizTitle={quiz.title}
             quizDescription={quiz.description}
+            quizAccessType={quiz.accessType}
+            quizAllowedPhoneNumbers={quiz.allowedPhoneNumbers}
           />
         )}
         {currentStep === "quiz" && (
