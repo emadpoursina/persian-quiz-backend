@@ -8,13 +8,12 @@ import userRouter from "./user.js";
 
 // Middleware
 import authenticationMiddleware from "../../http/middleware/authenticationMiddleware.js";
-import isAdminMiddleware from "../../http/middleware/isAdminMiddleware.js";
 
 const router = express.Router();
 
 router.use("/auth", authRouter);
 router.use("/quiz", quizRouter);
-router.use(authenticationMiddleware, isAdminMiddleware);
+router.use(authenticationMiddleware);
 router.use("/admin", adminRouter);
 router.use("/users", userRouter);
 
