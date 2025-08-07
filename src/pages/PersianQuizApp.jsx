@@ -104,9 +104,13 @@ export default function PersianQuizApp() {
         )}
         {currentStep === "results" && (
           <Results
-            userName={userInfo.name}
+            quizId={quiz._id}
             totalQuestions={quiz.questions.length}
-            allAnswers={allAnswers}
+            student={{
+              fullName: userInfo.name,
+              phoneNumber: userInfo.mobile,
+              allAnswers,
+            }}
             onRestart={handleRestart}
           />
         )}

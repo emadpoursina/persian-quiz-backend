@@ -1,47 +1,80 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy, Star } from "lucide-react";
+import useQuiz from "@/hooks/useQuiz";
 
 export default function Results({
-  userName,
-  score,
+  quizId,
   totalQuestions,
+  student,
   onRestart,
 }) {
   const [isVisible, setIsVisible] = useState(false);
-  const percentage = Math.round((score / totalQuestions) * 100);
+  const [score, setScore] = useState(0);
+
+  // Hooks
+  const {
+    mutateAsync: addStudent,
+    isPending,
+    error,
+  } = useQuiz.addStudent(quizId, student);
 
   useEffect(() => {
-    setTimeout(() => setIsVisible(true), 300);
+    async function getQuizResult() {
+      const score = await addStudent();
+      setScore(score);
+      setIsVisible(true);
+    }
+    getQuizResult();
   }, []);
 
-  const getResultMessage = () => {
+  const getResultMessage = (percentage) => {
     if (percentage >= 80) return "عالی! شما واقعاً استاد هستید! 🏆";
     if (percentage >= 60) return "خوب! عملکرد قابل قبولی داشتید 👍";
     if (percentage >= 40) return "متوسط! می‌توانید بهتر شوید 📚";
     return "نیاز به تمرین بیشتر دارید 💪";
   };
 
-  const getResultColor = () => {
+  const getResultColor = (percentage) => {
     if (percentage >= 80) return "from-yellow-400 to-orange-400";
     if (percentage >= 60) return "from-green-400 to-blue-400";
     if (percentage >= 40) return "from-blue-400 to-indigo-400";
     return "from-gray-400 to-gray-500";
   };
 
-  const getStars = () => {
+  const getStars = (percentage) => {
     if (percentage >= 80) return 3;
     if (percentage >= 60) return 2;
     if (percentage >= 40) return 1;
     return 0;
   };
 
+  // Show loading state
+  if (isPending) {
+    return (
+      <div
+        className="min-h-[100dvh] bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center"
+        dir="rtl"
+      >
+        <div className="text-white text-xl">در حال محاسبه نتیجه آزمون</div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div
+        className="min-h-[100dvh] bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center"
+        dir="rtl"
+      >
+        <div className="text-white text-xl">خطا در بارگزاری نتیجه آزمون</div>
+      </div>
+    );
+  }
+
+  const percentage = Math.round((score / totalQuestions) * 100);
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
       <Card
@@ -51,7 +84,9 @@ export default function Results({
       >
         <CardHeader className="text-center pb-4">
           <div
-            className={`mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-r ${getResultColor()} rounded-full flex items-center justify-center mb-4 animate-bounce`}
+            className={`mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-r ${getResultColor(
+              percentage
+            )} rounded-full flex items-center justify-center mb-4 animate-bounce`}
           >
             <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
           </div>
@@ -59,7 +94,7 @@ export default function Results({
             نتیجه آزمون
           </CardTitle>
           <p className="text-gray-600 text-sm">
-            {userName} عزیز، آزمون شما به پایان رسید
+            {student.fullName} عزیز، آزمون شما به پایان رسید
           </p>
         </CardHeader>
 
@@ -79,7 +114,7 @@ export default function Results({
                 <Star
                   key={i}
                   className={`w-6 h-6 sm:w-8 sm:h-8 ${
-                    i < getStars()
+                    i < getStars(percentage)
                       ? "text-yellow-400 fill-yellow-400"
                       : "text-white/30"
                   } transition-all duration-500`}
@@ -92,7 +127,7 @@ export default function Results({
           {/* Result Message */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
             <p className="text-blue-800 font-medium text-base sm:text-lg">
-              {getResultMessage()}
+              {getResultMessage(percentage)}
             </p>
           </div>
 
