@@ -10,6 +10,7 @@ import authStorage from "@/helpers/storage";
 import PrivateRouter from "./privateRouter";
 
 // Pages
+import Home from "@/pages/Home";
 import PersianQuizApp from "@/pages/PersianQuizApp";
 import Login from "@/pages/admin/Login";
 import NotFound from "@/pages/404Page";
@@ -17,7 +18,8 @@ import NotFound from "@/pages/404Page";
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
-      <Route path="/" element={<PersianQuizApp />} />
+      <Route path="/" element={<Home />} />
+      <Route path="/:slug" element={<PersianQuizApp />} />
       {!authStorage.getToken() ? (
         <>
           <Route path="/admin/*" element={<Navigate to="/login" />} />
