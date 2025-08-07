@@ -1,17 +1,19 @@
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import WelcomeForm from "@/components/WelcomForm";
 import Quiz from "@/components/quiz";
 import Results from "@/components/Result";
-import { exampleQuizzes } from "@/lib/ExampleData";
+import useQuiz from "@/hooks/useQuiz";
 
 export default function PersianQuizApp() {
+  const { slug } = useParams();
   const [currentStep, setCurrentStep] = useState("welcome");
   const [userInfo, setUserInfo] = useState({ name: "", mobile: "" });
   const [score, setScore] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
 
-  // Use the example quiz with media
-  const quizWithMedia = exampleQuizzes[0]; // "آزمون دانش عمومی ایران"
+  // Fetch quiz data from server using the slug
+  const { data: quiz, isLoading, error } = useQuiz.getQuizBySlug(slug);
 
   const handleStartQuiz = (name, mobile) => {
     setUserInfo({ name, mobile });
@@ -31,6 +33,43 @@ export default function PersianQuizApp() {
     setUserInfo({ name: "", mobile: "" });
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div
+        className="min-h-[100dvh] bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center"
+        dir="rtl"
+      >
+        <div className="text-white text-xl">در حال بارگذاری آزمون...</div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+
+    return (
+      <div
+        className="min-h-[100dvh] bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center"
+        dir="rtl"
+      >
+        <div className="text-white text-xl">خطا در بارگذاری آزمون</div>
+      </div>
+    );
+  }
+
+  // If no quiz data, show error
+  if (!quiz) {
+    return (
+      <div
+        className="min-h-[100dvh] bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center"
+        dir="rtl"
+      >
+        <div className="text-white text-xl">آزمون یافت نشد</div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="min-h-[100dvh] bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700"
@@ -40,15 +79,15 @@ export default function PersianQuizApp() {
         {currentStep === "welcome" && (
           <WelcomeForm
             onStart={handleStartQuiz}
-            quizTitle={quizWithMedia.title}
-            quizDescription={quizWithMedia.description}
+            quizTitle={quiz.title}
+            quizDescription={quiz.description}
           />
         )}
         {currentStep === "quiz" && (
           <Quiz
             userName={userInfo.name}
             onComplete={handleQuizComplete}
-            questions={quizWithMedia.questions}
+            questions={quiz.questions}
           />
         )}
         {currentStep === "results" && (
