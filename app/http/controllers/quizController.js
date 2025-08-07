@@ -355,7 +355,7 @@ const quizController = {
   async addStudent(req, res) {
     try {
       const quizId = req.params.id;
-      const student = req.body;
+      const student = { ...req.body, answers: [] };
 
       // Validate input
       if (!student || typeof student !== "object") {
@@ -370,19 +370,34 @@ const quizController = {
 
       // Validate that the number of answers matches the number of quiz questions
       if (
-        !Array.isArray(student.answers) ||
-        student.answers.length !== quiz.questions.length
+        !Array.isArray(student.allAnswers) ||
+        student.allAnswers.length !== quiz.questions.length
       ) {
         return res.status(400).json({
           error: `Number of answers (${
-            Array.isArray(student.answers) ? student.answers.length : 0
+            Array.isArray(student.allAnswers) ? student.allAnswers.length : 0
           }) does not match number of quiz questions (${
             quiz.questions.length
           }).`,
         });
       }
 
-      // Add the new student to the quiz's students array
+      // Calculate number fo correct answers
+      let correctCount = 0;
+      quiz.questions.forEach((question, idx) => {
+        // Find the correct option index for this question
+        const correctOptionIndex = question.options.findIndex(
+          (opt) => opt.isCorrect === true
+        );
+        if (student.allAnswers[idx] === correctOptionIndex) {
+          correctCount++;
+          student.answers.push(true);
+        } else {
+          student.answers.push(false);
+        }
+      });
+
+      // Add the new student to the quiz's students array, including score
       quiz.students.push({
         ...student,
         participateDate: new Date(),
@@ -390,7 +405,10 @@ const quizController = {
 
       await quiz.save();
 
-      res.status(200).json({ message: "Student added successfully.", quiz });
+      res.status(200).json({
+        message: "Student added successfully.",
+        correctAnswers: correctCount,
+      });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
