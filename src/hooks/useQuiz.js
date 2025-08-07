@@ -364,6 +364,31 @@ const useQuiz = {
       },
     });
   },
+
+  addStudent(quizId, student) {
+    return useMutation({
+      mutationFn: async () => {
+        const response = await apiClient.post(
+          `/quiz/${quizId}/students`,
+          student
+        );
+
+        if (!response.ok) {
+          throw new Error(response.data?.message || "خطا در ثبت سوال آزمون");
+        }
+
+        // Return user score
+        return response.data.correctAnswers;
+      },
+      onSuccess: () => {
+        toast.success("آزمون شما با موفقیت ثبت شد.");
+      },
+      onError: (error) => {
+        toast.error("خطا در ثبت جواب های شما.");
+        console.error("Error sending answers", error);
+      },
+    });
+  },
 };
 
 export default useQuiz;
