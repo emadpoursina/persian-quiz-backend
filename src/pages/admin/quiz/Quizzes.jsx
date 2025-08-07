@@ -124,7 +124,7 @@ export default function QuizzesPage() {
                   <p className="text-gray-600 mb-4">
                     برای شروع، اولین آزمون خود را ایجاد کنید
                   </p>
-                  <Link to="/admin/quizzes/create">
+                  <Link to="/admin/quizzes/add">
                     <Button className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600">
                       <Plus className="w-4 h-4 ml-2" />
                       ایجاد آزمون جدید
