@@ -53,11 +53,6 @@ export default function QuizzesPage() {
     });
   };
 
-  const getQuizResults = (quizId) => {
-    // TODO: Implement get quiz results
-    return [];
-  };
-
   if (isLoading) {
     return (
       <div className="admin-page">
@@ -135,15 +130,19 @@ export default function QuizzesPage() {
             </div>
           ) : (
             quizzes.map((quiz) => {
-              const results = getQuizResults(quiz._id);
               const averageScore =
-                results.length > 0
+                quiz.students.length > 0
                   ? Math.round(
-                      results.reduce(
-                        (sum, r) =>
-                          sum + (r.score / (quiz.questions?.length || 1)) * 100,
+                      quiz.students.reduce(
+                        (sum, student) =>
+                          sum +
+                          (student.answers.reduce((count, answer) => {
+                            return answer ? count + 1 : count;
+                          }, 0) /
+                            (quiz.questions?.length || 1)) *
+                            100,
                         0
-                      ) / results.length
+                      ) / quiz.students.length
                     )
                   : 0;
 
@@ -180,7 +179,7 @@ export default function QuizzesPage() {
                           </div>
                           <div className="bg-green-50 rounded-lg p-2 text-center">
                             <div className="text-lg font-bold text-green-600">
-                              {results.length}
+                              {quiz.students?.length || 0}
                             </div>
                             <div className="text-xs text-green-800">
                               شرکت‌کننده
