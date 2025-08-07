@@ -24,6 +24,46 @@ const quizController = {
     }
   },
 
+  async getQuizBySlug(req, res) {
+    try {
+      const { slug } = req.params;
+      const quiz = await Quiz.findOne({ slug });
+      if (!quiz) {
+        return res.status(404).json({ error: "Quiz not found" });
+      }
+
+      // Only send information necessary for a user to use the quiz
+      const quizForUser = {
+        _id: quiz._id,
+        title: quiz.title,
+        description: quiz.description,
+        isActive: quiz.isActive,
+        timeLimit: quiz.timeLimit,
+        passingScore: quiz.passingScore,
+        startTime: quiz.startTime,
+        endTime: quiz.endTime,
+        accessType: quiz.accessType,
+        allowedPhoneNumbers: quiz.allowedPhoneNumbers,
+        questions: quiz.questions.map((q) => ({
+          _id: q._id,
+          questionText: q.questionText,
+          options: q.options.map((opt) => ({
+            _id: opt._id,
+            text: opt.text,
+            // Do not send isCorrect!
+          })),
+          attachmentUrl: q.attachmentUrl,
+          attachmentAlt: q.attachmentAlt,
+          attachmentType: q.attachmentType,
+        })),
+      };
+
+      res.status(200).json(quizForUser);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+
   async getQuiz(req, res) {
     try {
       const quiz = await Quiz.findById(req.params.id);
@@ -83,7 +123,13 @@ const quizController = {
       // Save to trigger pre-save hooks
       await quiz.save();
 
-      res.status(200).json({ message: "Quiz status toggled successfully", isActive: quiz.isActive, quiz });
+      res
+        .status(200)
+        .json({
+          message: "Quiz status toggled successfully",
+          isActive: quiz.isActive,
+          quiz,
+        });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
