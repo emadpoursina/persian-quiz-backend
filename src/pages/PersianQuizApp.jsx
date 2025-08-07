@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import WelcomeForm from "@/components/WelcomForm";
-import Quiz from "@/components/quiz";
+import Quiz from "@/components/Quiz";
 import Results from "@/components/Result";
 import useQuiz from "@/hooks/useQuiz";
 
