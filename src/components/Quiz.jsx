@@ -77,7 +77,7 @@ export default function Quiz({ userName, onComplete, questions }) {
           <div className="mb-6 sm:mb-8">
             <div
               className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-6 text-center leading-relaxed quiz-question"
-              dangerouslySetInnerHTML={{ __html: currentQ.question }}
+              dangerouslySetInnerHTML={{ __html: currentQ.questionText }}
             />
 
             {/* Media Display */}
