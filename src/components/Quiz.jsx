@@ -56,6 +56,7 @@ export default function Quiz({ userName, onComplete, questions }) {
 
   return (
     <div className="flex items-center justify-center min-h-[100dvh] px-4">
+      {console.log(currentQ)}
       <Card className="w-full max-w-2xl bg-white border-gray-200 shadow-xl">
         <CardContent className="p-4 sm:p-8">
           {/* Header */}
