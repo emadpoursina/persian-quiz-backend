@@ -123,13 +123,11 @@ const quizController = {
       // Save to trigger pre-save hooks
       await quiz.save();
 
-      res
-        .status(200)
-        .json({
-          message: "Quiz status toggled successfully",
-          isActive: quiz.isActive,
-          quiz,
-        });
+      res.status(200).json({
+        message: "Quiz status toggled successfully",
+        isActive: quiz.isActive,
+        quiz,
+      });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
@@ -277,6 +275,65 @@ const quizController = {
       await quiz.save();
 
       res.status(200).json({ message: "Question updated successfully.", quiz });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+
+  async deleteQuestion(req, res) {
+    try {
+      const quizId = req.params.id;
+      const questionId = req.params.questionId;
+
+      // Find the quiz
+      const quiz = await Quiz.findById(quizId);
+      if (!quiz) {
+        return res.status(404).json({ error: "Quiz not found." });
+      }
+
+      // Find the index of the question in the quiz
+      const questionIndex = quiz.questions.findIndex(
+        (q) => q._id.toString() === questionId
+      );
+      if (questionIndex === -1) {
+        return res.status(404).json({ error: "Question not found." });
+      }
+
+      const question = quiz.questions[questionIndex];
+
+      // Remove question attachment if it's an image
+      if (question.attachmentType === "image") {
+        try {
+          const oldAttachmentUrl = question.attachmentUrl || "";
+          const urlPath = new URL(oldAttachmentUrl).pathname;
+          const storagePath =
+            process.env.STORAGE_PATH ||
+            path.join(process.cwd(), "public", "upload");
+          const relativeFilePath = urlPath.startsWith("/")
+            ? urlPath.slice(1)
+            : urlPath;
+          const filePath = path.join(
+            storagePath,
+            path.basename(relativeFilePath)
+          );
+          if (fs.existsSync(filePath)) {
+            fs.unlink(filePath, (err) => {
+              if (err) {
+                console.error("Failed to remove old image:", err.message);
+              }
+            });
+          }
+        } catch (e) {
+          // If oldAttachmentUrl is not a valid URL, skip deletion
+        }
+      }
+
+      // Remove the question from the quiz using splice
+      quiz.questions.splice(questionIndex, 1);
+
+      await quiz.save();
+
+      res.status(200).json({ message: "Question removed successfully.", quiz });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }

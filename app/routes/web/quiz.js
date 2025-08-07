@@ -53,6 +53,8 @@ router.put(
   quizController.updateQuestion
 );
 
+router.delete("/:id/questions/:questionId", quizController.deleteQuestion);
+
 // Student Routes
 // Add student to a quiz
 router.post("/:id/students", quizController.addStudent);
