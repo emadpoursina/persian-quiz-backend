@@ -155,7 +155,7 @@ quizSchema.pre("save", function (next) {
     let formatted = this.slug
       .toLowerCase()
       .replace(/\s+/g, "-") // Replace spaces with hyphens
-      .replace(/[^a-z0-9-]/g, "") // Remove invalid characters
+      .replace(/[^a-z0-9\u0600-\u06FF-]/g, "") // Remove invalid characters except Persian letters
       .replace(/--+/g, "-") // Replace multiple hyphens with one
       .replace(/^-+|-+$/g, ""); // Trim leading/trailing hyphens
     this.slug = formatted;
@@ -241,17 +241,18 @@ const quizValidationSchema = Joi.object({
   slug: Joi.string()
     .trim()
     .required()
-    .pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .pattern(/^[\u0600-\u06FFa-z0-9]+(?:-[\u0600-\u06FFa-z0-9]+)*$/i)
     .messages({
       "string.empty": "Slug cannot be empty",
       "any.required": "Slug is required",
-      "string.pattern.base": "Slug format is incorrect",
+      "string.pattern.base":
+        "Slug format is incorrect. Only Persian or English letters, numbers, and hyphens are allowed.",
     }),
   description: Joi.string().allow("").optional(),
   questions: Joi.array()
     .items(questionValidationSchema)
     .min(1)
-    .required()
+    .default([])
     .messages({
       "array.base": "Questions must be an array",
       "array.min": "At least one question is required",
@@ -271,8 +272,7 @@ const quizValidationSchema = Joi.object({
   }),
   accessType: Joi.string()
     .valid("public", "private")
-    .default("public")
-    .required()
+    .default("private")
     .messages({
       "string.empty": "نوع دسترسی نمی‌تواند خالی باشد.",
       "any.required": "نوع دسترسی الزامی است.",
@@ -290,22 +290,10 @@ const quizValidationSchema = Joi.object({
       }
     }
 
-    // Validate that private access has at least one phone number
-    if (value.accessType === "private") {
-      if (
-        !value.allowedPhoneNumbers ||
-        value.allowedPhoneNumbers.length === 0
-      ) {
-        return helpers.error("any.private_access");
-      }
-    }
-
     return value;
   })
   .messages({
     "any.invalid": "زمان شروع باید قبل از زمان پایان باشد.",
-    "any.private_access":
-      "برای دسترسی خصوصی، حداقل یک شماره تلفن باید تعریف شود.",
   });
 
 // Validation functions
