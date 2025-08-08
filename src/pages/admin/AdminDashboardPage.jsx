@@ -1,15 +1,23 @@
 import { Users, FileQuestion, Award, Activity } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { useState} from "react";
 import useQuiz from "@/hooks/useQuiz";
 import useAuth from "@/hooks/useAuth";
 
 export default function AdminDashboardPage() {
-  const [results, setResults] = useState([]);
-
   // Hooks
-  const { data: quizzes = [], isLoading, error } = useQuiz.getAllQuizzes();
+  const {
+    data: quizzes = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuiz.getAllQuizzes();
+  const {
+    data: students = [],
+    isLoading: isStudentsLoading,
+    error: studentsError,
+    refetch: studentsRefetch,
+  } = useQuiz.getAllStudents();
   const { currentUser } = useAuth();
 
   function calculateAverageScore(quizzes) {
@@ -38,7 +46,7 @@ export default function AdminDashboardPage() {
       : 0; // Overall average score
   }
 
-  if (isLoading) {
+  if (isLoading || isStudentsLoading) {
     return (
       <div className="admin-page">
         <div className="admin-content">
@@ -53,7 +61,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (error) {
+  if (error || studentsError) {
     return (
       <div className="admin-page">
         <div className="admin-content">
@@ -61,7 +69,12 @@ export default function AdminDashboardPage() {
             <div className="text-center">
               <AlertCircle className="w-8 h-8 mx-auto mb-4 text-red-600" />
               <p className="text-red-600 mb-4">خطا در بارگذاری آزمون‌ها</p>
-              <Button onClick={() => refetch()} variant="outline">
+              <Button
+                onClick={() => {
+                  error ? refetch() : studentsRefetch();
+                }}
+                variant="outline"
+              >
                 تلاش مجدد
               </Button>
             </div>
@@ -239,53 +252,54 @@ export default function AdminDashboardPage() {
             <Card className="admin-card bg-white shadow-sm border border-gray-200">
               <CardContent className="p-4 sm:p-6">
                 <ul className="space-y-3">
-                  {false &&
-                    recentResults.map((result) => {
-                      const quiz = quizzes.find((q) => q.id === result.quizId);
-                      const percentage = quiz
-                        ? Math.round(
-                            (result.score / quiz.questions.length) * 100
-                          )
-                        : 0;
+                  {students.map((student) => {
+                    const quiz = quizzes.find((q) => q._id === student.quizId);
+                    const score = student.answers.reduce(
+                      (acc, answer) => (answer ? acc + 1 : acc),
+                      0
+                    );
+                    const percentage = quiz
+                      ? Math.round((score / quiz.questions.length) * 100)
+                      : 0;
 
-                      return (
-                        <li
-                          key={result.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    return (
+                      <li
+                        key={student._id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <Users className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {student.fullName} در آزمون "
+                              {quiz?.title || "نامشخص"}" شرکت کرد
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(
+                                student.participateDate
+                              ).toLocaleDateString("fa-IR")}{" "}
+                              - نمره: {percentage}%
+                            </p>
+                          </div>
+                        </div>
+                        <div
+                          className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
+                            percentage >= 80
+                              ? "bg-green-100 text-green-800"
+                              : percentage >= 60
+                              ? "bg-blue-100 text-blue-800"
+                              : percentage >= 40
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
                         >
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <Users className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-gray-900 truncate">
-                                {result.userName} در آزمون "
-                                {quiz?.title || "نامشخص"}" شرکت کرد
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(
-                                  result.completedAt
-                                ).toLocaleDateString("fa-IR")}{" "}
-                                - نمره: {percentage}%
-                              </p>
-                            </div>
-                          </div>
-                          <div
-                            className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
-                              percentage >= 80
-                                ? "bg-green-100 text-green-800"
-                                : percentage >= 60
-                                ? "bg-blue-100 text-blue-800"
-                                : percentage >= 40
-                                ? "bg-orange-100 text-orange-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {percentage}%
-                          </div>
-                        </li>
-                      );
-                    })}
+                          {percentage}%
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </CardContent>
             </Card>
