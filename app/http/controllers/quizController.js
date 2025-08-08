@@ -1,12 +1,23 @@
-import { Quiz } from "../../models/Quiz.js";
+import { Quiz, validateQuiz } from "../../models/Quiz.js";
 import fs from "fs";
 import path from "path";
 
 const quizController = {
   async addQuiz(req, res) {
     try {
+      // Validate the request body before saving
+      const { error, value } = validateQuiz(req.body);
+      if (error) {
+        // Return all validation errors
+        return res.status(400).json({
+          error: error.details.map((d) => d.message).join(" | "),
+          details: error.details,
+        });
+      }
+
+      // If valid, create and save the quiz
       const quiz = await new Quiz({
-        ...req.body,
+        ...value,
       }).save();
 
       res.status(201).json(quiz);
@@ -417,7 +428,10 @@ const quizController = {
   async getAllStudents(req, res) {
     try {
       // Get all quizzes, only select students and createdAt
-      const quizzes = await Quiz.find({}, { students: 1, createdAt: 1, _id: 0 });
+      const quizzes = await Quiz.find(
+        {},
+        { students: 1, createdAt: 1, _id: 1 }
+      );
 
       // Flatten all students from all quizzes, and add quizCreatedAt to each student
       let allStudents = [];
@@ -426,6 +440,7 @@ const quizController = {
           quiz.students.forEach((student) => {
             allStudents.push({
               ...student.toObject(),
+              quizId: quiz._id,
               quizCreatedAt: quiz.createdAt,
             });
           });
@@ -433,13 +448,18 @@ const quizController = {
       });
 
       // Sort all students by their quiz's creation date (descending: newest first)
-      allStudents.sort((a, b) => new Date(b.quizCreatedAt) - new Date(a.quizCreatedAt));
+      allStudents.sort(
+        (a, b) => new Date(b.quizCreatedAt) - new Date(a.quizCreatedAt)
+      );
 
-      res.status(200).json({ students: allStudents });
+      // Only return the 10 latest students
+      const latestStudents = allStudents.slice(0, 10);
+
+      res.status(200).json(latestStudents);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 };
 
 export default quizController;
