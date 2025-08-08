@@ -54,11 +54,11 @@ export default function AdminLoginPage() {
       );
     },
     onSuccess: () => {
-      toast.success("Logged in successfully!");
+      toast.success("شما با موفقیت وارد شدید.");
       window.location.href = "/admin/dashboard";
     },
     onError: () => {
-      toast.error("Login failed. Please try again.");
+      toast.error("ورود ناموفق بود. لطفا دوباره تلاش کنید.");
     },
   });
 
