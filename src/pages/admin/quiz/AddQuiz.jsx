@@ -120,8 +120,10 @@ export default function CreateQuizPage() {
                       {...register("slug", {
                         required: "نام مستعار الزامی است",
                         pattern: {
-                          value: /^[a-z0-9-]+$/,
-                          message: "فقط حروف کوچک، اعداد و خط تیره مجاز است",
+                          // Allow Persian letters, English lowercase, numbers, and hyphens
+                          value: /^[\u0600-\u06FFa-z0-9-]+$/,
+                          message:
+                            "فقط حروف فارسی، حروف کوچک انگلیسی، اعداد و خط تیره مجاز است",
                         },
                       })}
                       placeholder="quiz-name"
