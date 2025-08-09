@@ -156,9 +156,9 @@ export default function QuizResultsPage() {
       ...students.map((student) => {
         const correctAnswers = student.answers?.filter(Boolean).length || 0;
         return [
-          student.userName || student.name,
-          student.userMobile || student.mobile,
-          `${correctAnswers}/${totalQuestions}`,
+          student.fullName,
+          student.phoneNumber,
+          `="${correctAnswers}/${totalQuestions}"`,
           `${Math.round((correctAnswers / totalQuestions) * 100)}%`,
           new Date(student.completedAt || Date.now()).toLocaleDateString(
             "fa-IR"
@@ -172,17 +172,17 @@ export default function QuizResultsPage() {
 
     // Escape double quotes and commas in fields
     const escapeCsvField = (field) => {
-      if (typeof field === "string" && (field.includes(",") || field.includes('"') || field.includes("\n"))) {
+      if (
+        typeof field === "string" &&
+        (field.includes(",") || field.includes('"') || field.includes("\n"))
+      ) {
         return `"${field.replace(/"/g, '""')}"`;
       }
       return field;
     };
 
     const csvContent =
-      BOM +
-      csvRows
-        .map((row) => row.map(escapeCsvField).join(","))
-        .join("\n");
+      BOM + csvRows.map((row) => row.map(escapeCsvField).join(",")).join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
