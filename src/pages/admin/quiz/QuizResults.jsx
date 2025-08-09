@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { toast } from "react-hot-toast";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   ArrowRight,
@@ -136,9 +137,14 @@ export default function QuizResultsPage() {
     }) || [];
 
   const exportDetailedResults = () => {
-    if (!students || students.length === 0) return;
+    if (!students || students.length === 0) {
+      toast("دانش آموزی برای گرفتن خروجی وجود ندارد.", { icon: "⚠️" });
+      return;
+    }
 
-    const csvContent = [
+    // Add BOM and UTF-8 encoding to support Persian characters
+    const BOM = "\uFEFF";
+    const csvRows = [
       [
         "نام",
         "شماره موبایل",
@@ -162,9 +168,21 @@ export default function QuizResultsPage() {
           ) || []),
         ];
       }),
-    ]
-      .map((row) => row.join(","))
-      .join("\n");
+    ];
+
+    // Escape double quotes and commas in fields
+    const escapeCsvField = (field) => {
+      if (typeof field === "string" && (field.includes(",") || field.includes('"') || field.includes("\n"))) {
+        return `"${field.replace(/"/g, '""')}"`;
+      }
+      return field;
+    };
+
+    const csvContent =
+      BOM +
+      csvRows
+        .map((row) => row.map(escapeCsvField).join(","))
+        .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
