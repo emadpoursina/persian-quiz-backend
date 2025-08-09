@@ -104,14 +104,6 @@ const quizSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    timeLimit: {
-      type: Number,
-      default: 0,
-    },
-    passingScore: {
-      type: Number,
-      default: 70,
-    },
     startTime: {
       type: Date,
       required: false,
@@ -262,8 +254,6 @@ const quizValidationSchema = Joi.object({
     "array.base": "Students must be an array",
   }),
   isActive: Joi.boolean().default(false),
-  timeLimit: Joi.number().integer().min(0).default(0),
-  passingScore: Joi.number().integer().min(0).max(100).default(70),
   startTime: Joi.date().optional().messages({
     "date.base": "Start time must be a valid date",
   }),

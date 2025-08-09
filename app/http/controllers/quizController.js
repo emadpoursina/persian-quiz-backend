@@ -49,8 +49,6 @@ const quizController = {
         title: quiz.title,
         description: quiz.description,
         isActive: quiz.isActive,
-        timeLimit: quiz.timeLimit,
-        passingScore: quiz.passingScore,
         startTime: quiz.startTime,
         endTime: quiz.endTime,
         accessType: quiz.accessType,
