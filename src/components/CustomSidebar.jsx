@@ -30,13 +30,13 @@ const menuItems = [
 export default function CustomSidebar({ isOpen, onClose }) {
   const pathname = useLocation().pathname;
   const { logOut } = useAuth();
+  const { currentUser } = useAuth();
 
   const handleLogout = async () => {
     await logOut();
   };
 
-  const adminUser =
-    typeof window !== "undefined" ? localStorage.getItem("adminUser") : null;
+  const adminUser = currentUser?.name || null;
 
   return (
     <>
