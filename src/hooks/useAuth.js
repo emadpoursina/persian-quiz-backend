@@ -17,10 +17,10 @@ export default function useAuth() {
     authStorage.removeToken();
     localStorage.removeItem("persian-quiz-user");
 
-    window.open("/auth/login", "_self");
+    window.open("/login", "_self");
   };
 
-  const updateUser = async() => {
+  const updateUser = async () => {
     if (!currentUser) return;
 
     const { data, ok } = await apiClient.get("/users/me");
