@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import toast from "react-hot-toast";
-import { deleteQuiz } from "@/lib/storage";
 
 const useQuiz = {
   addQuiz() {
@@ -396,9 +395,7 @@ const useQuiz = {
       queryFn: async () => {
         const response = await apiClient.get(`/quiz/students`);
         if (!response.ok) {
-          throw new Error(
-            response.data?.message || "خطا در دریافت تاریخچه"
-          );
+          throw new Error(response.data?.message || "خطا در دریافت تاریخچه");
         }
         return response.data;
       },
