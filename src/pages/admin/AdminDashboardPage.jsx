@@ -169,7 +169,7 @@ export default function AdminDashboardPage() {
                         میانگین نمرات
                       </p>
                       <p className="text-2xl sm:text-3xl font-bold text-orange-600">
-                        {averageScore}%
+                        {averageScore.toFixed(2)}%
                       </p>
                     </div>
                     <Award className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500" />
