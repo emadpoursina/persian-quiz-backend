@@ -378,10 +378,17 @@ export default function QuizResultsPage() {
                       className="border rounded-lg p-4"
                     >
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
-                        <h4 className="font-medium text-gray-800 text-sm sm:text-base">
-                          سوال {analysis.questionNumber}:{" "}
-                          {analysis.question.substring(0, 60)}
-                          {analysis.question.length > 60 && "..."}
+                        <h4 className="font-medium text-gray-800 text-sm sm:text-base flex flex-wrap items-center gap-1">
+                          <span>سوال {analysis.questionNumber}:</span>
+                          <span
+                            className="inline"
+                            dangerouslySetInnerHTML={{
+                              __html:
+                                analysis.question.length > 60
+                                  ? analysis.question.substring(0, 60) + "..."
+                                  : analysis.question,
+                            }}
+                          />
                         </h4>
                         <div
                           className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
