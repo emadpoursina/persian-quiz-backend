@@ -1,4 +1,4 @@
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import {
   LayoutDashboard,
   FileText,
@@ -7,6 +7,7 @@ import {
   BookOpen,
   X,
 } from "lucide-react";
+import useAuth from "@/hooks/useAuth";
 
 const menuItems = [
   {
@@ -27,13 +28,11 @@ const menuItems = [
 ];
 
 export default function CustomSidebar({ isOpen, onClose }) {
-  const navigate = useNavigate();
   const pathname = useLocation().pathname;
+  const { logOut } = useAuth();
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminLoggedIn");
-    localStorage.removeItem("adminUser");
-    navigate("/admin/login");
+  const handleLogout = async () => {
+    await logOut();
   };
 
   const adminUser =
