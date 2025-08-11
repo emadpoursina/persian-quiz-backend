@@ -66,6 +66,24 @@ export default function PersianQuizApp() {
     );
   }
 
+  // Check if the quiz is inactive or outside the allowed time window
+  if (
+    quiz.isActive === false ||
+    (quiz.startTime &&
+      quiz.endTime &&
+      (new Date() < new Date(quiz.startTime) ||
+        new Date() > new Date(quiz.endTime)))
+  ) {
+    return (
+      <div
+        className="min-h-[100dvh] bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center"
+        dir="rtl"
+      >
+        <div className="text-white text-xl">آزمون غیر فعال است</div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="min-h-[100dvh] bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700"
