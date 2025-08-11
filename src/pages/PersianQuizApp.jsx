@@ -79,7 +79,7 @@ export default function PersianQuizApp() {
         className="min-h-[100dvh] bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center"
         dir="rtl"
       >
-        <div className="text-white text-xl">آزمون غیر فعال است</div>
+        <div className="text-white text-xl">این آزمون در حال حاضر غیر فعال هست</div>
       </div>
     );
   }
