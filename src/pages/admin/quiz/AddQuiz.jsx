@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ArrowRight, Save, FileText } from "lucide-react";
+import { Save, FileText } from "lucide-react";
+import AdminPageHeader from "@/components/AdminPageHeader";
 import useQuiz from "@/hooks/useQuiz";
 import { generateSlug } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -61,17 +61,7 @@ export default function CreateQuizPage() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <SidebarTrigger />
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/admin/dashboard")}
-          className="text-gray-600 hover:text-gray-800"
-        >
-          <ArrowRight className="w-4 h-4 ml-1" />
-          بازگشت
-        </Button>
-      </div>
+      <AdminPageHeader />
 
       <div className="max-w-4xl mx-auto px-4 w-full">
         <Card className="bg-white shadow-sm border border-gray-200 w-full">

@@ -1,21 +1,19 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams} from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
-  ArrowRight,
   BarChart3,
   TrendingUp,
   Users,
   Target,
   Download,
 } from "lucide-react";
+import AdminPageHeader from "@/components/AdminPageHeader";
 import useQuiz from "@/hooks/useQuiz";
 
 export default function QuizResultsPage() {
   const params = useParams();
-  const navigate = useNavigate();
   const quizId = params.id;
 
   // Use the useQuiz hook to fetch quiz data from server
@@ -197,16 +195,7 @@ export default function QuizResultsPage() {
 
   return (
     <div className="p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-        <SidebarTrigger />
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/admin/quizzes")}
-          className="text-gray-600 hover:text-gray-800"
-        >
-          <ArrowRight className="w-4 h-4 ml-1" />
-          بازگشت به لیست آزمون‌ها
-        </Button>
+      <AdminPageHeader>
         <Button
           onClick={exportDetailedResults}
           variant="outline"
@@ -216,7 +205,7 @@ export default function QuizResultsPage() {
           <Download className="w-4 h-4 ml-2" />
           خروجی تفصیلی
         </Button>
-      </div>
+      </AdminPageHeader>
 
       <div className="grid gap-4 sm:gap-6">
         {/* Overall Stats */}

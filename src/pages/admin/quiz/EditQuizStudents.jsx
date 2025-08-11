@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams} from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ArrowRight, Users, Search, Download, Eye } from "lucide-react";
+import { Users, Search, Download, Eye } from "lucide-react";
+import AdminPageHeader from "@/components/AdminPageHeader";
 import useQuiz from "@/hooks/useQuiz";
 
 export default function QuizStudentsPage() {
   const params = useParams();
-  const navigate = useNavigate();
   const quizId = params.id;
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -98,17 +97,7 @@ export default function QuizStudentsPage() {
 
   return (
     <div className="p-4 sm:p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <SidebarTrigger />
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/admin/quizzes")}
-          className="text-gray-600 hover:text-gray-800"
-        >
-          <ArrowRight className="w-4 h-4 ml-1" />
-          بازگشت به لیست آزمون‌ها
-        </Button>
-      </div>
+      <AdminPageHeader />
 
       <div className="grid gap-4 sm:gap-6">
         {/* Stats */}

@@ -1,5 +1,4 @@
 import {
-  ArrowRight,
   Plus,
   Edit,
   Trash2,
@@ -14,16 +13,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import AdminPageHeader from "@/components/AdminPageHeader";
 import TinyMCEEditor from "@/components/TinymceEditor.jsx";
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import useQuiz from "@/hooks/useQuiz";
 
 export default function QuestionsPage() {
   // Constants
-  const navigate = useNavigate();
   const { id: quizId } = useParams();
 
   // States
@@ -168,17 +166,7 @@ export default function QuestionsPage() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <SidebarTrigger />
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/admin/quizzes")}
-          className="text-gray-600 hover:text-gray-800"
-        >
-          <ArrowRight className="w-4 h-4 ml-1" />
-          بازگشت به لیست آزمون‌ها
-        </Button>
-      </div>
+      <AdminPageHeader />
 
       <div className="grid gap-6">
         {/* Quiz Info */}

@@ -7,10 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { DateTimePicker } from "react-advance-jalaali-datepicker";
 import {
-  ArrowRight,
   Settings,
   Save,
   Clock,
@@ -18,6 +16,7 @@ import {
   ExternalLink,
   Loader2,
 } from "lucide-react";
+import AdminPageHeader from "@/components/AdminPageHeader";
 import useQuiz from "@/hooks/useQuiz";
 import toast from "react-hot-toast";
 import moment from "moment-jalaali";
@@ -142,17 +141,7 @@ export default function QuizSettingsPage() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <SidebarTrigger />
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/admin/quizzes")}
-          className="text-gray-600 hover:text-gray-800"
-        >
-          <ArrowRight className="w-4 h-4 ml-1" />
-          بازگشت به لیست آزمون‌ها
-        </Button>
-      </div>
+      <AdminPageHeader />
 
       <form
         onSubmit={handleSubmit(onSubmit)}
