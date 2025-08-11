@@ -272,6 +272,7 @@ export default function QuizSettingsPage() {
                 <Switch
                   checked={watchedValues.isActive}
                   onCheckedChange={(checked) => setValue("isActive", checked)}
+                  style={{ direction: "ltr" }}
                 />
               </div>
             </div>
