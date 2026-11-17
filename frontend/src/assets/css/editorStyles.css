@@ -1,0 +1,133 @@
+/* Custom styles for React Quill editor in RTL */
+.ql-editor {
+  direction: rtl !important;
+  text-align: right !important;
+  font-family: "Vazirmatn", sans-serif !important;
+  min-height: 120px;
+}
+
+.ql-toolbar {
+  border-top: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+}
+
+.ql-container {
+  border-bottom: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+}
+
+.ql-editor.ql-blank::before {
+  color: #9ca3af;
+  font-style: normal;
+  right: 15px;
+  left: auto;
+}
+
+/* RTL toolbar adjustments */
+.ql-toolbar .ql-formats {
+  margin-left: 15px;
+  margin-right: 0;
+}
+
+.ql-toolbar .ql-formats:first-child {
+  margin-right: 0;
+}
+
+/* Custom button styling */
+.ql-toolbar button {
+  width: 28px;
+  height: 28px;
+}
+
+.ql-toolbar button:hover {
+  color: #3b82f6;
+}
+
+.ql-toolbar button.ql-active {
+  color: #3b82f6;
+}
+
+/* Dropdown styling */
+.ql-toolbar .ql-picker {
+  color: #374151;
+}
+
+.ql-toolbar .ql-picker-options {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Focus styles */
+.ql-container.ql-snow {
+  border-color: #d1d5db;
+}
+
+.ql-container.ql-snow:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+.ql-toolbar.ql-snow:focus-within {
+  border-color: #3b82f6;
+}
+
+/* List styling for RTL */
+.ql-editor ol,
+.ql-editor ul {
+  padding-right: 1.5em;
+  padding-left: 0;
+}
+
+.ql-editor li {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Link and image styling */
+.ql-editor a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.ql-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Header styling */
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3 {
+  font-weight: bold;
+  margin: 0.5em 0;
+}
+
+.ql-editor h1 {
+  font-size: 1.5em;
+}
+
+.ql-editor h2 {
+  font-size: 1.3em;
+}
+
+.ql-editor h3 {
+  font-size: 1.1em;
+}
+
+/* Color picker styling */
+.ql-color-picker .ql-picker-options {
+  width: 152px;
+}
+
+.ql-color-picker .ql-picker-item {
+  width: 16px;
+  height: 16px;
+  margin: 2px;
+}
